@@ -169,7 +169,24 @@ function logDiff(section, actionLabel){
 }
 
 
+function isStorageAvailable() {
+  try {
+    const t = '__storage_test__';
+    localStorage.setItem(t, t);
+    localStorage.removeItem(t);
+    return true;
+  } catch(e) { return false; }
+}
+
+let _storageWarnShown = false;
 function saveAlimi() {
+  if (!isStorageAvailable()) {
+    if (!_storageWarnShown) {
+      _storageWarnShown = true;
+      alert('⚠️ 브라우저 설정에 의해 데이터 저장이 차단되어 있습니다.\n시크릿 탭이거나 쿠키/사이트 데이터가 차단된 경우입니다.\n일반 탭에서 열어주세요.');
+    }
+    return;
+  }
   try {
     const data = {
       year:    $('c-year').value,
@@ -202,6 +219,7 @@ function saveAlimi() {
 }
 
 function loadAlimi() {
+  if (!isStorageAvailable()) return;
   try {
     const raw = localStorage.getItem('wawa_alimi');
     if (!raw) return;
@@ -412,7 +430,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
 <div class="tab-nav">
   <button class="tab-btn on" onclick="switchTab('alimi',this)">📅 월간 알리미</button>
   <button class="tab-btn" onclick="switchTab('notice',this)">📢 안내문 만들기</button>
-  <button class="tab-btn ext" onclick="location.href='index.html'">📋 카드 만들기</button>
+
 </div>
 
 <!-- ══ 탭1: 월간 알리미 ══ -->
@@ -1171,7 +1189,24 @@ function logDiff(section, actionLabel){
 }
 
 
+function isStorageAvailable() {
+  try {
+    const t = '__storage_test__';
+    localStorage.setItem(t, t);
+    localStorage.removeItem(t);
+    return true;
+  } catch(e) { return false; }
+}
+
+let _storageWarnShown = false;
 function saveAlimi() {
+  if (!isStorageAvailable()) {
+    if (!_storageWarnShown) {
+      _storageWarnShown = true;
+      alert('⚠️ 브라우저 설정에 의해 데이터 저장이 차단되어 있습니다.\n시크릿 탭이거나 쿠키/사이트 데이터가 차단된 경우입니다.\n일반 탭에서 열어주세요.');
+    }
+    return;
+  }
   try {
     const data = {
       year:    $('c-year').value,
@@ -1204,6 +1239,7 @@ function saveAlimi() {
 }
 
 function loadAlimi() {
+  if (!isStorageAvailable()) return;
   try {
     const raw = localStorage.getItem('wawa_alimi');
     if (!raw) return;

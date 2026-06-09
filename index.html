@@ -1058,8 +1058,27 @@ async function capture(cardId, btnId, name) {
 }
 
 // ── localStorage 저장/불러오기 ──
+function isStorageAvailable() {
+  try {
+    const t = '__storage_test__';
+    localStorage.setItem(t, t);
+    localStorage.removeItem(t);
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+let _storageWarnShown = false;
 function saveData() {
   try {
+    if (!isStorageAvailable()) {
+      if (!_storageWarnShown) {
+        _storageWarnShown = true;
+        alert('⚠️ 브라우저 설정에 의해 데이터 저장이 차단되어 있습니다.\n\n시크릿 탭이거나 쿠키/사이트 데이터가 차단된 경우 저장이 되지 않습니다.\n일반 탭에서 열어주세요.');
+      }
+      return;
+    }
     const data = {
       branch: document.getElementById('inp-branch').value,
       tel:    document.getElementById('inp-tel').value,
@@ -1072,10 +1091,17 @@ function saveData() {
       logoGlory: document.getElementById('logo-glory').checked,
     };
     localStorage.setItem('wawa_data', JSON.stringify(data));
-  } catch(e) {}
+  } catch(e) {
+    console.error('저장 오류:', e);
+    if (!_storageWarnShown) {
+      _storageWarnShown = true;
+      alert('⚠️ 데이터 저장 중 오류가 발생했습니다.\n' + e.message);
+    }
+  }
 }
 
 function loadData() {
+  if (!isStorageAvailable()) return;
   try {
     const raw = localStorage.getItem('wawa_data');
     if (!raw) return;
