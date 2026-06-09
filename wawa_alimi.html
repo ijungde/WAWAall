@@ -7,6 +7,168 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
 // ── localStorage 저장/불러오기 ──
+
+// ════════════════════════════════════════════
+//  변경 이력 시스템
+// ════════════════════════════════════════════
+const LOG_KEY   = 'wawa_logs';
+const LOG_LIMIT = 200;
+let   _logFilter = 'all';
+let   _paySnap   = null;
+
+const SECTION_META = {
+  naesin:  { label:'내신',      color:'#9b59b6', emoji:'📚' },
+  rules:   { label:'지켜주세요', color:'#e17055', emoji:'📌' },
+  cal:     { label:'달력',      color:'#27ae60', emoji:'📅' },
+  notice:  { label:'공지',      color:'#2980b9', emoji:'📢' },
+  pay:     { label:'결제안내',  color:'#f39c12', emoji:'💳' },
+  base:    { label:'기본정보',  color:'#636e72', emoji:'⚙️'  },
+};
+
+function getLogs(){ try{ return JSON.parse(localStorage.getItem(LOG_KEY)||'[]'); }catch(e){return[];} }
+function saveLogs(arr){ try{ localStorage.setItem(LOG_KEY,JSON.stringify(arr)); }catch(e){} }
+
+function pushLog(section, action, detail){
+  const logs = getLogs();
+  const entry = {
+    id:      Date.now(),
+    ts:      new Date().toISOString(),
+    section: section,
+    action:  action,
+    detail:  detail   // { before, after } 또는 { text }
+  };
+  logs.unshift(entry);
+  if(logs.length > LOG_LIMIT) logs.length = LOG_LIMIT;
+  saveLogs(logs);
+  updateLogBadge();
+}
+
+function fmtTs(iso){
+  const d = new Date(iso);
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function fmtVal(v){
+  if(v===null||v===undefined) return '(없음)';
+  if(typeof v === 'object') return JSON.stringify(v, null, 1);
+  return String(v);
+}
+
+function updateLogBadge(){
+  const badge = document.getElementById('log-badge');
+  if(!badge) return;
+  const logs = getLogs();
+  if(logs.length > 0){ badge.textContent = logs.length > 99 ? '99+' : logs.length; badge.style.display='block'; }
+  else badge.style.display='none';
+}
+
+function setLogFilter(f, el){
+  _logFilter = f;
+  document.querySelectorAll('.log-filter-btn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  renderLogList();
+}
+
+function renderLogList(){
+  const logs = getLogs().filter(l => _logFilter === 'all' || l.section === _logFilter);
+  const list = document.getElementById('log-list');
+  const countTxt = document.getElementById('log-count-txt');
+  if(!list) return;
+  if(logs.length === 0){
+    list.innerHTML = '<div id="log-empty">아직 변경 이력이 없습니다 ✨</div>';
+    if(countTxt) countTxt.textContent = '';
+    return;
+  }
+  if(countTxt) countTxt.textContent = `총 ${logs.length}건`;
+  list.innerHTML = logs.map(l => {
+    const m = SECTION_META[l.section] || SECTION_META.base;
+    const hasDiff = l.detail && (l.detail.before !== undefined || l.detail.after !== undefined);
+    const diffHtml = hasDiff
+      ? `<div class="log-diff">
+           ${ l.detail.before !== undefined ? `<div class="log-before">이전: ${fmtVal(l.detail.before)}</div>` : '' }
+           ${ l.detail.after  !== undefined ? `<div class="log-after">이후: ${fmtVal(l.detail.after)}</div>` : '' }
+         </div>`
+      : (l.detail && l.detail.text
+          ? `<div class="log-diff"><div class="log-single">${l.detail.text}</div></div>`
+          : '');
+    return `
+      <div class="log-item">
+        <div class="log-meta">
+          <span class="log-tag" style="background:${m.color}">${m.emoji} ${m.label}</span>
+          <span class="log-action">${l.action}</span>
+          <span class="log-time">${fmtTs(l.ts)}</span>
+        </div>
+        ${diffHtml}
+      </div>`;
+  }).join('');
+}
+
+function openLogModal(){
+  renderLogList();
+  document.getElementById('log-modal').classList.add('open');
+}
+function closeLogModal(){
+  document.getElementById('log-modal').classList.remove('open');
+}
+function clearLogs(){
+  if(!confirm('변경 이력을 모두 삭제할까요?')) return;
+  saveLogs([]);
+  updateLogBadge();
+  renderLogList();
+}
+
+// ── 섹션별 스냅샷 비교 헬퍼 ──
+let _snap = {};  // 변경 전 스냅샷 보관
+
+function snapBefore(section){
+  _snap[section] = getSnapVal(section);
+}
+
+function getSnapVal(section){
+  switch(section){
+    case 'naesin':  return JSON.parse(JSON.stringify(naesin));
+    case 'rules':   return JSON.parse(JSON.stringify(rules));
+    case 'cal':     return JSON.parse(JSON.stringify(evts));
+    case 'notice':  return JSON.parse(JSON.stringify(nItems));
+    case 'pay':     return {
+      nTitle: $('n-title').value, nSub: $('n-sub').value,
+      nNote:  $('n-note').value,  nBrand: $('n-brand').value,
+      nTel:   $('n-tel').value,   nColor: $('n-color').value,
+    };
+    default: return null;
+  }
+}
+
+function logChange(section, action, detail){
+  pushLog(section, action, detail);
+}
+
+function logDiff(section, actionLabel){
+  const before = section === 'pay' ? _paySnap : _snap[section];
+  const after  = getSnapVal(section);
+  if(!before) return;
+  const bStr = JSON.stringify(before);
+  const aStr = JSON.stringify(after);
+  if(bStr === aStr) return;
+  // pay는 변경된 필드만 각각 기록
+  if(section === 'pay' && typeof before === 'object' && typeof after === 'object'){
+    for(const key of Object.keys(after)){
+      if(String(before[key]) !== String(after[key])){
+        const labels = {nTitle:'제목',nSub:'부제',nNote:'안내문구',nBrand:'브랜드명',nTel:'전화번호',nColor:'테마색상'};
+        pushLog('pay', `${labels[key]||key} 수정`, {before:before[key], after:after[key]});
+      }
+    }
+  } else {
+    pushLog(section, actionLabel, {
+      before: Array.isArray(before) ? before.join(' / ') : JSON.stringify(before),
+      after:  Array.isArray(after)  ? after.join(' / ')  : JSON.stringify(after),
+    });
+  }
+  if(section === 'pay') _paySnap = null;
+}
+
+
 function saveAlimi() {
   try {
     const data = {
@@ -81,6 +243,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
 .tab-btn{flex:1;padding:13px 8px;border:none;background:transparent;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;color:#aaa;cursor:pointer;transition:all .2s;border-bottom:3px solid transparent;}
 .tab-btn.on{color:var(--og);border-bottom-color:var(--og);background:#fff8f4;}
 .tab-btn:hover:not(.on){color:#FF8C42;background:#fffaf7;}
+.tab-btn.ext{color:#5B67CA;}
+.tab-btn.ext:hover{color:#7B87EA;background:#F0F1FF;}
 .tab-page{display:none;width:100%;max-width:1200px;}
 .tab-page.on{display:block;}
 
@@ -211,6 +375,36 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
   .slide,.notice-slide{width:100%;max-width:680px;}
   .tab-nav,.tab-page{max-width:680px;}
 }
+
+/* ── 변경 이력 ── */
+#log-fab{position:fixed;bottom:22px;right:22px;width:52px;height:52px;border-radius:50%;background:var(--og);color:#fff;font-size:22px;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(255,107,26,.45);z-index:9000;display:flex;align-items:center;justify-content:center;transition:transform .15s;}
+#log-fab:hover{transform:scale(1.1);}
+#log-badge{position:absolute;top:-4px;right:-4px;background:#e74c3c;color:#fff;font-size:9px;font-weight:700;border-radius:10px;padding:1px 5px;display:none;}
+#log-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9100;align-items:center;justify-content:center;}
+#log-modal.open{display:flex;}
+#log-box{background:#fff;border-radius:18px;width:min(680px,96vw);max-height:82vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3);}
+#log-head{padding:16px 20px;border-bottom:2px solid #fff0e8;display:flex;align-items:center;justify-content:space-between;}
+#log-head h2{font-size:15px;font-weight:700;color:var(--og);}
+#log-filters{display:flex;gap:6px;padding:10px 16px;border-bottom:1px solid #f0f0f0;flex-wrap:wrap;}
+.log-filter-btn{padding:4px 10px;border:1.5px solid #e0e0e0;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;background:#fff;color:#888;transition:all .15s;}
+.log-filter-btn.on{background:var(--og);color:#fff;border-color:var(--og);}
+#log-list{overflow-y:auto;flex:1;padding:10px 16px;display:flex;flex-direction:column;gap:8px;}
+.log-item{border:1.5px solid #f0f0f0;border-radius:12px;padding:10px 14px;font-size:12px;}
+.log-item:hover{border-color:#ffd4b0;background:#fffaf7;}
+.log-meta{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.log-tag{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;color:#fff;}
+.log-time{font-size:10px;color:#bbb;margin-left:auto;}
+.log-action{font-size:11px;color:#555;font-weight:700;}
+.log-diff{display:flex;flex-direction:column;gap:3px;margin-top:4px;}
+.log-before{background:#fff0f0;border-radius:6px;padding:4px 8px;color:#c0392b;font-size:11px;}
+.log-after{background:#f0fff4;border-radius:6px;padding:4px 8px;color:#27ae60;font-size:11px;}
+.log-single{background:#f5f5f5;border-radius:6px;padding:4px 8px;color:#555;font-size:11px;}
+#log-empty{text-align:center;padding:40px;color:#bbb;font-size:13px;}
+#log-foot{padding:10px 16px;border-top:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;}
+#log-foot span{font-size:11px;color:#bbb;}
+#log-clear-btn{padding:5px 12px;border:1.5px solid #ffb3b3;border-radius:8px;background:#fff;color:#e74c3c;font-size:11px;font-weight:700;cursor:pointer;}
+#log-clear-btn:hover{background:#fff0f0;}
+
 </style>
 </head>
 <body>
@@ -218,6 +412,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
 <div class="tab-nav">
   <button class="tab-btn on" onclick="switchTab('alimi',this)">📅 월간 알리미</button>
   <button class="tab-btn" onclick="switchTab('notice',this)">📢 안내문 만들기</button>
+  <button class="tab-btn ext" onclick="location.href='index.html'">📋 카드 만들기</button>
 </div>
 
 <!-- ══ 탭1: 월간 알리미 ══ -->
@@ -440,23 +635,23 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
       <div class="panel-title">📢 안내문 설정</div>
       <div style="display:flex;gap:8px;margin-bottom:8px;">
         <div style="flex:1;"><span class="lbl">안내문 제목</span>
-          <input id="n-title" class="inp" value="공휴일 수업 안내" style="width:100%;" oninput="renderNotice();saveAlimi()"></div>
+          <input id="n-title" data-log-label="제목" class="inp" value="공휴일 수업 안내" style="width:100%;" onfocus="_paySnap=getSnapVal('pay')" oninput="renderNotice();saveAlimi()" onchange="logDiff('pay','결제안내 수정')" ></div>
         <div><span class="lbl">🎨 테마색</span>
-          <input type="color" id="n-color" value="#FF6B1A" style="width:40px;height:33px;border:none;border-radius:8px;cursor:pointer;display:block;" oninput="renderNotice();saveAlimi()"></div>
+          <input type="color" id="n-color" data-log-label="테마색상" value="#FF6B1A" style="width:40px;height:33px;border:none;border-radius:8px;cursor:pointer;display:block;" onfocus="_paySnap=getSnapVal('pay')" oninput="renderNotice();saveAlimi()" onchange="logDiff('pay','결제안내 수정')" ></div>
       </div>
       <div style="margin-bottom:8px;"><span class="lbl">부제</span>
-        <input id="n-sub" class="inp" value="해당 날짜 수업 일정을 안내드립니다" style="width:100%;" oninput="renderNotice();saveAlimi()"></div>
+        <input id="n-sub" data-log-label="부제" class="inp" value="해당 날짜 수업 일정을 안내드립니다" style="width:100%;" onfocus="_paySnap=getSnapVal('pay')" oninput="renderNotice();saveAlimi()" onchange="logDiff('pay','결제안내 수정')" ></div>
       <div>
         <span class="lbl" style="margin-bottom:5px;display:block;">🏷️ 상단 로고 선택 (복수 선택 가능)</span>
         <div style="display:flex;gap:7px;flex-wrap:wrap;">
           <label style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;cursor:pointer;background:#FFF5EE;padding:5px 11px;border-radius:20px;border:1.5px solid #FFD4B0;">
-            <input type="checkbox" id="n-logo-wawa" checked onchange="renderNotice();saveAlimi()"> wawa
+            <input type="checkbox" id="n-logo-wawa" checked onfocus="_paySnap=getSnapVal('pay')" onchange="renderNotice();saveAlimi();logDiff('pay','결제안내 수정')"> wawa
           </label>
           <label style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;cursor:pointer;background:#FFF5EE;padding:5px 11px;border-radius:20px;border:1.5px solid #FFD4B0;">
-            <input type="checkbox" id="n-logo-wplus" checked onchange="renderNotice();saveAlimi()"> W+
+            <input type="checkbox" id="n-logo-wplus" checked onfocus="_paySnap=getSnapVal('pay')" onchange="renderNotice();saveAlimi();logDiff('pay','결제안내 수정')"> W+
           </label>
           <label style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;cursor:pointer;background:#FFF5EE;padding:5px 11px;border-radius:20px;border:1.5px solid #FFD4B0;">
-            <input type="checkbox" id="n-logo-glory" checked onchange="renderNotice();saveAlimi()"> 글로리드
+            <input type="checkbox" id="n-logo-glory" checked onfocus="_paySnap=getSnapVal('pay')" onchange="renderNotice();saveAlimi();logDiff('pay','결제안내 수정')"> 글로리드
           </label>
         </div>
       </div>
@@ -487,11 +682,11 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
     <div class="panel">
       <div class="panel-title">📝 하단 정보</div>
       <div style="margin-bottom:7px;"><span class="lbl">안내문구</span>
-        <input id="n-note" class="inp" value="* 문의사항은 담당 선생님께 연락 주세요." style="width:100%;" oninput="renderNotice();saveAlimi()"></div>
+        <input id="n-note" data-log-label="안내문구" class="inp" value="* 문의사항은 담당 선생님께 연락 주세요." style="width:100%;" onfocus="_paySnap=getSnapVal('pay')" oninput="renderNotice();saveAlimi()" onchange="logDiff('pay','결제안내 수정')" ></div>
       <div style="margin-bottom:7px;"><span class="lbl">학원 로고/이름</span>
-        <input id="n-brand" class="inp" value="wawa. W+. 글로리드" style="width:100%;" oninput="renderNotice();saveAlimi()"></div>
+        <input id="n-brand" data-log-label="브랜드명" class="inp" value="wawa. W+. 글로리드" style="width:100%;" onfocus="_paySnap=getSnapVal('pay')" oninput="renderNotice();saveAlimi()" onchange="logDiff('pay','결제안내 수정')" ></div>
       <div><span class="lbl">전화번호</span>
-        <input id="n-tel" class="inp" value="031)000-000" style="width:100%;" oninput="renderNotice();saveAlimi()"></div>
+        <input id="n-tel" data-log-label="전화번호" class="inp" value="031)000-000" style="width:100%;" onfocus="_paySnap=getSnapVal('pay')" oninput="renderNotice();saveAlimi()" onchange="logDiff('pay','결제안내 수정')" ></div>
     </div>
   </div>
 
@@ -574,6 +769,7 @@ let nItems=[
 window.onload=()=>{
   const n=new Date();
   loadAlimi();
+  updateLogBadge();
   $('c-year').value=n.getFullYear();
   $('c-month').value=n.getMonth()+1;
   renderAll();
@@ -596,15 +792,15 @@ function switchTab(name,el){
 
 // ── 내신 ──
 function renderNaesinCtrl(){ /* 패널 목록 없음 — 슬라이드에서 직접 수정 */ }
-function addNaesin(){naesin.push('새 항목');renderNaesinCtrl();renderNaesinSlide();saveAlimi();}
-function delNaesin(i){naesin.splice(i,1);renderNaesinCtrl();renderNaesinSlide();saveAlimi();}
+function addNaesin(){snapBefore('naesin');naesin.push('새 항목');renderNaesinCtrl();renderNaesinSlide();saveAlimi();logChange('naesin','항목 추가',{text:'"새 항목" 추가'});}
+function delNaesin(i){snapBefore('naesin');const removed=naesin[i];naesin.splice(i,1);renderNaesinCtrl();renderNaesinSlide();saveAlimi();logChange('naesin','항목 삭제',{text:`"${removed}" 삭제`});}
 function renderNaesinSlide(){
   const s=$('r-n').value;
   $('s-naesin').innerHTML=naesin.map((t,i)=>`
     <div class="naesin-row">
       <div class="naesin-chk"><svg viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5 4.5-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <span class="naesin-txt" style="font-size:${s}px;" contenteditable="true" spellcheck="false"
-        onblur="naesin[${i}]=this.textContent;syncNaesinCtrl();saveAlimi()">${t}</span>
+        onblur="const _prev=naesin[${i}];naesin[${i}]=this.textContent;syncNaesinCtrl();saveAlimi();if(_prev!==this.textContent)logChange('naesin','내용 수정',{before:_prev,after:this.textContent})">${t}</span>
     </div>`).join('');
 }
 function syncNaesinCtrl(){
@@ -615,15 +811,15 @@ function syncNaesinCtrl(){
 
 // ── 지켜주세요 ──
 function renderRulesCtrl(){ /* 패널 목록 없음 — 슬라이드에서 직접 수정 */ }
-function addRule(){rules.push('새 항목');renderRulesCtrl();renderRulesSlide();saveAlimi();}
-function delRule(i){rules.splice(i,1);renderRulesCtrl();renderRulesSlide();saveAlimi();}
+function addRule(){snapBefore('rules');rules.push('새 항목');renderRulesCtrl();renderRulesSlide();saveAlimi();logChange('rules','항목 추가',{text:'"새 항목" 추가'});}
+function delRule(i){snapBefore('rules');const removed=rules[i];rules.splice(i,1);renderRulesCtrl();renderRulesSlide();saveAlimi();logChange('rules','항목 삭제',{text:`"${removed}" 삭제`});}
 function renderRulesSlide(){
   const s=$('r-ru').value;
   $('s-rules').innerHTML=rules.map((t,i)=>{
     const isArrow=t.startsWith('→');
     return isArrow
-      ? `<div class="rules-row"><span class="rules-txt" style="font-size:${s}px;padding-left:13px;" contenteditable="true" spellcheck="false" onblur="rules[${i}]=this.textContent;syncRulesCtrl();saveAlimi()">${t}</span></div>`
-      : `<div class="rules-row"><div class="rules-dot"></div><span class="rules-txt" style="font-size:${s}px;" contenteditable="true" spellcheck="false" onblur="rules[${i}]=this.textContent;syncRulesCtrl();saveAlimi()">${t}</span></div>`;
+      ? `<div class="rules-row"><span class="rules-txt" style="font-size:${s}px;padding-left:13px;" contenteditable="true" spellcheck="false" onblur="const _prev=rules[${i}];rules[${i}]=this.textContent;syncRulesCtrl();saveAlimi();if(_prev!==this.textContent)logChange('rules','내용 수정',{before:_prev,after:this.textContent})">${t}</span></div>`
+      : `<div class="rules-row"><div class="rules-dot"></div><span class="rules-txt" style="font-size:${s}px;" contenteditable="true" spellcheck="false" onblur="const _prev=rules[${i}];rules[${i}]=this.textContent;syncRulesCtrl();saveAlimi();if(_prev!==this.textContent)logChange('rules','내용 수정',{before:_prev,after:this.textContent})">${t}</span></div>`;
   }).join('');
 }
 function syncRulesCtrl(){
@@ -645,8 +841,8 @@ function addLegend(){legends.push({id:nLeg++,name:'새 일정',color:'#FF6B1A'})
 function delLeg(i){legends.splice(i,1);renderLegendCtrl();renderCal();saveAlimi();}
 
 // ── 공휴일 ──
-function applyCustomHols(){customHols=$('hol-input').value.split(',').map(s=>parseInt(s.trim())).filter(n=>!isNaN(n)&&n>0&&n<=31);renderCal();saveAlimi();}
-function clearCustomHols(){customHols=[];$('hol-input').value='';renderCal();saveAlimi();}
+function applyCustomHols(){const prev=customHols.join(',');customHols=$('hol-input').value.split(',').map(s=>parseInt(s.trim())).filter(n=>!isNaN(n)&&n>0&&n<=31);renderCal();saveAlimi();logChange('cal','공휴일 설정',{before:prev||'(없음)',after:customHols.join(',')||'(없음)'});}
+function clearCustomHols(){logChange('cal','공휴일 초기화',{text:'공휴일 설정 전체 삭제'});customHols=[];$('hol-input').value='';renderCal();saveAlimi();}
 
 // ── 달력 ──
 function renderCal(){
@@ -692,8 +888,8 @@ function toggleChip(name,color,el){
   if(i>=0){evts[curDay].splice(i,1);el.classList.remove('on');el.style.color='';el.style.borderColor='';el.style.background='';}
   else{evts[curDay].push({text:name,color});el.classList.add('on');el.style.color=color;el.style.borderColor=color;el.style.background=color+'18';}
 }
-function applyPop(){const t=$('pop-txt').value.trim(),c=$('pop-clr').value;if(t){if(!evts[curDay])evts[curDay]=[];evts[curDay].push({text:t,color:c});}closePop();renderCal();saveAlimi();}
-function clearDay(){evts[curDay]=[];closePop();renderCal();saveAlimi();}
+function applyPop(){const t=$('pop-txt').value.trim(),c=$('pop-clr').value;if(t){if(!evts[curDay])evts[curDay]=[];evts[curDay].push({text:t,color:c});logChange('cal','일정 추가',{text:`${curDay}일: "${t}" 추가`});}closePop();renderCal();saveAlimi();}
+function clearDay(){logChange('cal','일정 삭제',{text:`${curDay}일 일정 전체 삭제`});evts[curDay]=[];closePop();renderCal();saveAlimi();}
 function closePop(){$('overlay').classList.remove('on');}
 function closeOut(e){if(e.target===$('overlay'))closePop();}
 
@@ -731,16 +927,16 @@ async function saveImg(){
 }
 
 // ── 안내문 ──
-function addNItem(){nItems.push({date:'날짜',content:'내용'});renderNItemsCtrl();renderNotice();saveAlimi();}
-function delNItem(i){nItems.splice(i,1);renderNItemsCtrl();renderNotice();saveAlimi();}
+function addNItem(){nItems.push({date:'날짜',content:'내용'});renderNItemsCtrl();renderNotice();saveAlimi();logChange('notice','항목 추가',{text:'새 공지 항목 추가'});}
+function delNItem(i){const removed=nItems[i];nItems.splice(i,1);renderNItemsCtrl();renderNotice();saveAlimi();logChange('notice','항목 삭제',{text:`"${removed.date} ${removed.content}" 삭제`});}
 function renderNItemsCtrl(){
   $('n-items-ctrl').innerHTML=nItems.map((item,i)=>`
     <div class="li" style="margin-bottom:7px;align-items:flex-start;">
       <div style="display:flex;flex-direction:column;gap:4px;flex:1;">
         <input class="inp" placeholder="날짜" value="${item.date}" style="width:100%;font-size:11px;"
-          oninput="nItems[${i}].date=this.value;renderNotice();saveAlimi()">
+          oninput="const _pd=nItems[${i}].date;nItems[${i}].date=this.value;renderNotice();saveAlimi();if(_pd!==this.value)logChange('notice','날짜 수정',{before:_pd,after:this.value})">
         <input class="inp" placeholder="내용" value="${item.content}" style="width:100%;font-size:11px;"
-          oninput="nItems[${i}].content=this.value;renderNotice();saveAlimi()">
+          oninput="const _pc=nItems[${i}].content;nItems[${i}].content=this.value;renderNotice();saveAlimi();if(_pc!==this.value)logChange('notice','내용 수정',{before:_pc,after:this.value})">
       </div>
       <button class="btn br" style="font-size:10px;padding:4px 8px;margin-top:2px;" onclick="delNItem(${i})">✕</button>
     </div>`).join('');
@@ -813,6 +1009,168 @@ async function saveNotice(){
 }
 
 // ── localStorage 저장/불러오기 ──
+
+// ════════════════════════════════════════════
+//  변경 이력 시스템
+// ════════════════════════════════════════════
+const LOG_KEY   = 'wawa_logs';
+const LOG_LIMIT = 200;
+let   _logFilter = 'all';
+let   _paySnap   = null;
+
+const SECTION_META = {
+  naesin:  { label:'내신',      color:'#9b59b6', emoji:'📚' },
+  rules:   { label:'지켜주세요', color:'#e17055', emoji:'📌' },
+  cal:     { label:'달력',      color:'#27ae60', emoji:'📅' },
+  notice:  { label:'공지',      color:'#2980b9', emoji:'📢' },
+  pay:     { label:'결제안내',  color:'#f39c12', emoji:'💳' },
+  base:    { label:'기본정보',  color:'#636e72', emoji:'⚙️'  },
+};
+
+function getLogs(){ try{ return JSON.parse(localStorage.getItem(LOG_KEY)||'[]'); }catch(e){return[];} }
+function saveLogs(arr){ try{ localStorage.setItem(LOG_KEY,JSON.stringify(arr)); }catch(e){} }
+
+function pushLog(section, action, detail){
+  const logs = getLogs();
+  const entry = {
+    id:      Date.now(),
+    ts:      new Date().toISOString(),
+    section: section,
+    action:  action,
+    detail:  detail   // { before, after } 또는 { text }
+  };
+  logs.unshift(entry);
+  if(logs.length > LOG_LIMIT) logs.length = LOG_LIMIT;
+  saveLogs(logs);
+  updateLogBadge();
+}
+
+function fmtTs(iso){
+  const d = new Date(iso);
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function fmtVal(v){
+  if(v===null||v===undefined) return '(없음)';
+  if(typeof v === 'object') return JSON.stringify(v, null, 1);
+  return String(v);
+}
+
+function updateLogBadge(){
+  const badge = document.getElementById('log-badge');
+  if(!badge) return;
+  const logs = getLogs();
+  if(logs.length > 0){ badge.textContent = logs.length > 99 ? '99+' : logs.length; badge.style.display='block'; }
+  else badge.style.display='none';
+}
+
+function setLogFilter(f, el){
+  _logFilter = f;
+  document.querySelectorAll('.log-filter-btn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  renderLogList();
+}
+
+function renderLogList(){
+  const logs = getLogs().filter(l => _logFilter === 'all' || l.section === _logFilter);
+  const list = document.getElementById('log-list');
+  const countTxt = document.getElementById('log-count-txt');
+  if(!list) return;
+  if(logs.length === 0){
+    list.innerHTML = '<div id="log-empty">아직 변경 이력이 없습니다 ✨</div>';
+    if(countTxt) countTxt.textContent = '';
+    return;
+  }
+  if(countTxt) countTxt.textContent = `총 ${logs.length}건`;
+  list.innerHTML = logs.map(l => {
+    const m = SECTION_META[l.section] || SECTION_META.base;
+    const hasDiff = l.detail && (l.detail.before !== undefined || l.detail.after !== undefined);
+    const diffHtml = hasDiff
+      ? `<div class="log-diff">
+           ${ l.detail.before !== undefined ? `<div class="log-before">이전: ${fmtVal(l.detail.before)}</div>` : '' }
+           ${ l.detail.after  !== undefined ? `<div class="log-after">이후: ${fmtVal(l.detail.after)}</div>` : '' }
+         </div>`
+      : (l.detail && l.detail.text
+          ? `<div class="log-diff"><div class="log-single">${l.detail.text}</div></div>`
+          : '');
+    return `
+      <div class="log-item">
+        <div class="log-meta">
+          <span class="log-tag" style="background:${m.color}">${m.emoji} ${m.label}</span>
+          <span class="log-action">${l.action}</span>
+          <span class="log-time">${fmtTs(l.ts)}</span>
+        </div>
+        ${diffHtml}
+      </div>`;
+  }).join('');
+}
+
+function openLogModal(){
+  renderLogList();
+  document.getElementById('log-modal').classList.add('open');
+}
+function closeLogModal(){
+  document.getElementById('log-modal').classList.remove('open');
+}
+function clearLogs(){
+  if(!confirm('변경 이력을 모두 삭제할까요?')) return;
+  saveLogs([]);
+  updateLogBadge();
+  renderLogList();
+}
+
+// ── 섹션별 스냅샷 비교 헬퍼 ──
+let _snap = {};  // 변경 전 스냅샷 보관
+
+function snapBefore(section){
+  _snap[section] = getSnapVal(section);
+}
+
+function getSnapVal(section){
+  switch(section){
+    case 'naesin':  return JSON.parse(JSON.stringify(naesin));
+    case 'rules':   return JSON.parse(JSON.stringify(rules));
+    case 'cal':     return JSON.parse(JSON.stringify(evts));
+    case 'notice':  return JSON.parse(JSON.stringify(nItems));
+    case 'pay':     return {
+      nTitle: $('n-title').value, nSub: $('n-sub').value,
+      nNote:  $('n-note').value,  nBrand: $('n-brand').value,
+      nTel:   $('n-tel').value,   nColor: $('n-color').value,
+    };
+    default: return null;
+  }
+}
+
+function logChange(section, action, detail){
+  pushLog(section, action, detail);
+}
+
+function logDiff(section, actionLabel){
+  const before = section === 'pay' ? _paySnap : _snap[section];
+  const after  = getSnapVal(section);
+  if(!before) return;
+  const bStr = JSON.stringify(before);
+  const aStr = JSON.stringify(after);
+  if(bStr === aStr) return;
+  // pay는 변경된 필드만 각각 기록
+  if(section === 'pay' && typeof before === 'object' && typeof after === 'object'){
+    for(const key of Object.keys(after)){
+      if(String(before[key]) !== String(after[key])){
+        const labels = {nTitle:'제목',nSub:'부제',nNote:'안내문구',nBrand:'브랜드명',nTel:'전화번호',nColor:'테마색상'};
+        pushLog('pay', `${labels[key]||key} 수정`, {before:before[key], after:after[key]});
+      }
+    }
+  } else {
+    pushLog(section, actionLabel, {
+      before: Array.isArray(before) ? before.join(' / ') : JSON.stringify(before),
+      after:  Array.isArray(after)  ? after.join(' / ')  : JSON.stringify(after),
+    });
+  }
+  if(section === 'pay') _paySnap = null;
+}
+
+
 function saveAlimi() {
   try {
     const data = {
@@ -877,5 +1235,34 @@ function loadAlimi() {
   } catch(e) {}
 }
 </script>
+
+<!-- 변경 이력 FAB -->
+<button id="log-fab" onclick="openLogModal()" title="변경 이력 보기">
+  🕐<span id="log-badge"></span>
+</button>
+
+<!-- 변경 이력 모달 -->
+<div id="log-modal" onclick="if(event.target===this)closeLogModal()">
+  <div id="log-box">
+    <div id="log-head">
+      <h2>📋 변경 이력</h2>
+      <button onclick="closeLogModal()" style="border:none;background:none;font-size:20px;cursor:pointer;color:#aaa;">✕</button>
+    </div>
+    <div id="log-filters">
+      <button class="log-filter-btn on" onclick="setLogFilter('all',this)">전체</button>
+      <button class="log-filter-btn" onclick="setLogFilter('naesin',this)">📚 내신</button>
+      <button class="log-filter-btn" onclick="setLogFilter('rules',this)">📌 지켜주세요</button>
+      <button class="log-filter-btn" onclick="setLogFilter('cal',this)">📅 달력</button>
+      <button class="log-filter-btn" onclick="setLogFilter('notice',this)">📢 공지</button>
+      <button class="log-filter-btn" onclick="setLogFilter('pay',this)">💳 결제안내</button>
+    </div>
+    <div id="log-list"></div>
+    <div id="log-foot">
+      <span id="log-count-txt"></span>
+      <button id="log-clear-btn" onclick="clearLogs()">🗑️ 이력 전체 삭제</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

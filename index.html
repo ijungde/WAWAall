@@ -223,6 +223,36 @@ body {
 }
 .save-btn:active { opacity:0.85; transform:scale(0.98); }
 .save-btn.ok { background:linear-gradient(135deg,#34C759,#30B350); }
+
+/* ── 변경 이력 ── */
+#log-fab{position:fixed;bottom:22px;right:22px;width:52px;height:52px;border-radius:50%;background:#FF6B1A;color:#fff;font-size:22px;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(255,107,26,.45);z-index:9000;display:flex;align-items:center;justify-content:center;transition:transform .15s;}
+#log-fab:hover{transform:scale(1.1);}
+#log-badge{position:absolute;top:-4px;right:-4px;background:#e74c3c;color:#fff;font-size:9px;font-weight:700;border-radius:10px;padding:1px 5px;display:none;}
+#log-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9100;align-items:center;justify-content:center;}
+#log-modal.open{display:flex;}
+#log-box{background:#fff;border-radius:18px;width:min(680px,96vw);max-height:82vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3);}
+#log-head{padding:16px 20px;border-bottom:2px solid #fff0e8;display:flex;align-items:center;justify-content:space-between;}
+#log-head h2{font-size:15px;font-weight:700;color:#FF6B1A;}
+#log-filters{display:flex;gap:6px;padding:10px 16px;border-bottom:1px solid #f0f0f0;flex-wrap:wrap;}
+.log-filter-btn{padding:4px 10px;border:1.5px solid #e0e0e0;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;background:#fff;color:#888;transition:all .15s;}
+.log-filter-btn.on{background:#FF6B1A;color:#fff;border-color:#FF6B1A;}
+#log-list{overflow-y:auto;flex:1;padding:10px 16px;display:flex;flex-direction:column;gap:8px;}
+.log-item{border:1.5px solid #f0f0f0;border-radius:12px;padding:10px 14px;font-size:12px;}
+.log-item:hover{border-color:#ffd4b0;background:#fffaf7;}
+.log-meta{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.log-tag{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;color:#fff;}
+.log-time{font-size:10px;color:#bbb;margin-left:auto;}
+.log-action{font-size:11px;color:#555;font-weight:700;}
+.log-diff{display:flex;flex-direction:column;gap:3px;margin-top:4px;}
+.log-before{background:#fff0f0;border-radius:6px;padding:4px 8px;color:#c0392b;font-size:11px;}
+.log-after{background:#f0fff4;border-radius:6px;padding:4px 8px;color:#27ae60;font-size:11px;}
+.log-single{background:#f5f5f5;border-radius:6px;padding:4px 8px;color:#555;font-size:11px;}
+#log-empty{text-align:center;padding:40px;color:#bbb;font-size:13px;}
+#log-foot{padding:10px 16px;border-top:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;}
+#log-foot span{font-size:11px;color:#bbb;}
+#log-clear-btn{padding:5px 12px;border:1.5px solid #ffb3b3;border-radius:8px;background:#fff;color:#e74c3c;font-size:11px;font-weight:700;cursor:pointer;}
+#log-clear-btn:hover{background:#fff0f0;}
+
 </style>
 </head>
 <body>
@@ -233,7 +263,7 @@ body {
   <button class="tab-btn"        onclick="switchTab('guide')">📋 수업 안내문</button>
   <button class="tab-btn"        onclick="switchTab('pay')">💳 결제 안내</button>
   <button class="tab-btn"        onclick="switchTab('alimi')">📸 이미지</button>
-  <button class="tab-btn external" onclick="openLink('https://ijungde.github.io/-/')">📆 월간</button>
+  <button class="tab-btn external" onclick="openLink('wawa_alimi.html')">📆 월간 알리미</button>
   <button class="tab-btn external" onclick="openLink('https://ijungde.github.io/wawa-manager/')">👥 원생관리</button>
 </div>
 
@@ -398,74 +428,74 @@ body {
       <div class="col-l" style="width:460px;flex-shrink:0;">
 
         <div class="section">
-          <div class="sec-title"><div class="sec-num">1</div><div class="sec-label">수업은 <span style="color:#FF6B1A">한 달</span> 단위로 진행됩니다</div></div>
-          <div class="items"><div class="item">매월 입회일이 수업 회비일입니다</div></div>
+          <div class="sec-title"><div class="sec-num">1</div><div class="sec-label" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','섹션 제목')">수업은 <span style="color:#FF6B1A">한 달</span> 단위로 진행됩니다</div></div>
+          <div class="items" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','수업규정 항목')"><div class="item" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','수업규정 항목')">매월 입회일이 수업 회비일입니다</div></div>
         </div>
         <div class="divider"></div>
 
         <div class="section">
-          <div class="sec-title"><div class="sec-num">2</div><div class="sec-label">당일 취소·결강은 보강이 되지 않습니다</div></div>
-          <div class="items">
-            <div class="item">수업 변동사항은 미리 말씀해 주시면 상의 가능합니다</div>
-            <div class="item">교사 사정(워크샵·세미나 등)으로 결강 시 보강을 원칙으로 합니다</div>
+          <div class="sec-title"><div class="sec-num">2</div><div class="sec-label" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','섹션 제목')">당일 취소·결강은 보강이 되지 않습니다</div></div>
+          <div class="items" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','수업규정 항목')">
+            <div class="item" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','수업규정 항목')">수업 변동사항은 미리 말씀해 주시면 상의 가능합니다</div>
+            <div class="item" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','수업규정 항목')">교사 사정(워크샵·세미나 등)으로 결강 시 보강을 원칙으로 합니다</div>
           </div>
         </div>
         <div class="divider"></div>
 
         <div class="section">
-          <div class="sec-title"><div class="sec-num">3</div><div class="sec-label"><span style="color:#FF6B1A">공휴일·국경일</span>은 수업하지 않습니다</div></div>
-          <div class="items">
-            <div class="item">공휴일에 진행되는 수업에 대한 결석은 따로 보강이 어렵습니다</div>
-            <div class="item">불가피한 경우, 담당 교사와 학생 상의 하에 보강 가능합니다</div>
+          <div class="sec-title"><div class="sec-num">3</div><div class="sec-label" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','섹션 제목')"><span style="color:#FF6B1A">공휴일·국경일</span>은 수업하지 않습니다</div></div>
+          <div class="items" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','수업규정 항목')">
+            <div class="item" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','수업규정 항목')">공휴일에 진행되는 수업에 대한 결석은 따로 보강이 어렵습니다</div>
+            <div class="item" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','수업규정 항목')">불가피한 경우, 담당 교사와 학생 상의 하에 보강 가능합니다</div>
           </div>
         </div>
         <div class="divider"></div>
 
         <div class="section">
-          <div class="sec-title"><div class="sec-num">4</div><div class="sec-label">수업은 정해진 시간에 도착해 주세요</div></div>
-          <div class="items">
-            <div class="item">무단 지각 등 사전 상의 없이 늦게 등원하는 경우 보충이 이루어지지 않을 수 있습니다</div>
-            <div class="item">늦을 경우 담당 선생님께 꼭 연락 주세요</div>
+          <div class="sec-title"><div class="sec-num">4</div><div class="sec-label" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','섹션 제목')">수업은 정해진 시간에 도착해 주세요</div></div>
+          <div class="items" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','수업규정 항목')">
+            <div class="item" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','수업규정 항목')">무단 지각 등 사전 상의 없이 늦게 등원하는 경우 보충이 이루어지지 않을 수 있습니다</div>
+            <div class="item" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','수업규정 항목')">늦을 경우 담당 선생님께 꼭 연락 주세요</div>
           </div>
         </div>
         <div class="divider"></div>
 
         <div class="section">
-          <div class="sec-title"><div class="sec-num">5</div><div class="sec-label">수업 변동사항 안내</div></div>
-          <div class="hl-box"><p>⚠️ 다음 달 시작일 포함 <strong>10일 전까지</strong> 담당 선생님께 알려주세요</p></div>
-          <div class="items" style="margin-top:5px">
-            <div class="item">변동사항이 10일 전 처리 안 되면 접수 불가하여 회원이나 교사에게 금전적 책임이 발생합니다</div>
+          <div class="sec-title"><div class="sec-num">5</div><div class="sec-label" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','섹션 제목')">수업 변동사항 안내</div></div>
+          <div class="hl-box"><p contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','강조 박스')">⚠️ 다음 달 시작일 포함 <strong>10일 전까지</strong> 담당 선생님께 알려주세요</p></div>
+          <div class="items" style="margin-top:5px" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','수업규정 항목')">
+            <div class="item" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','수업규정 항목')">변동사항이 10일 전 처리 안 되면 접수 불가하여 회원이나 교사에게 금전적 책임이 발생합니다</div>
           </div>
         </div>
         <div class="divider"></div>
 
         <div class="section">
-          <div class="sec-title"><div class="sec-num">6</div><div class="sec-label">센터 수업 시 <span style="color:#FF6B1A">학생 준수 사항</span></div></div>
+          <div class="sec-title"><div class="sec-num">6</div><div class="sec-label" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','섹션 제목')">센터 수업 시 <span style="color:#FF6B1A">학생 준수 사항</span></div></div>
           <div class="rule-list">
-            <div class="rule-item"><div class="rule-title">① 센터 입·퇴실</div><div class="rule-desc">무단 지각·결석, 학사 일정 무단 결정 금지</div></div>
-            <div class="rule-item"><div class="rule-title">② 센터 공공시설</div><div class="rule-desc">게시물 파손·낙서 금지 / 기물 파손 금지</div></div>
+            <div class="rule-item" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','수업규정 항목')"><div class="rule-title" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','준수사항 제목')">① 센터 입·퇴실</div><div class="rule-desc" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','준수사항 내용')">무단 지각·결석, 학사 일정 무단 결정 금지</div></div>
+            <div class="rule-item" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','수업규정 항목')"><div class="rule-title" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','준수사항 제목')">② 센터 공공시설</div><div class="rule-desc" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','준수사항 내용')">게시물 파손·낙서 금지 / 기물 파손 금지</div></div>
           </div>
         </div>
         <div class="divider"></div>
 
         <div class="section">
-          <div class="sec-title"><div class="sec-num" style="font-size:8px;width:21px;height:21px;">★</div><div class="sec-label">반복 시 조치 사항</div></div>
+          <div class="sec-title"><div class="sec-num" style="font-size:8px;width:21px;height:21px;">★</div><div class="sec-label" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','섹션 제목')">반복 시 조치 사항</div></div>
           <div class="process-box">
-            <div class="p-row"><span class="p-badge">1단계</span><span>담당 교사 및 원장선생님의 구두 경고</span></div>
-            <div class="p-row"><span class="p-badge">2단계</span><span>여러 번 반복 시 부모님 상담 진행</span></div>
-            <div class="p-row"><span class="p-badge">3단계</span><span>개선의 여지가 없을 경우 퇴원 조치</span></div>
+            <div class="p-row"><span class="p-badge">1단계</span><span contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','조치사항 내용')">담당 교사 및 원장선생님의 구두 경고</span></div>
+            <div class="p-row"><span class="p-badge">2단계</span><span contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','조치사항 내용')">여러 번 반복 시 부모님 상담 진행</span></div>
+            <div class="p-row"><span class="p-badge">3단계</span><span contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','조치사항 내용')">개선의 여지가 없을 경우 퇴원 조치</span></div>
           </div>
         </div>
         <div class="divider"></div>
 
         <div class="section">
-          <div class="sec-title"><div class="sec-num">7</div><div class="sec-label">학원법에 따른 환불 규정</div></div>
+          <div class="sec-title"><div class="sec-num">7</div><div class="sec-label" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','섹션 제목')">학원법에 따른 환불 규정</div></div>
           <div class="refund-table">
             <div class="r-row rh"><div class="r-cell">환불 시점</div><div class="r-cell">환불 금액</div></div>
-            <div class="r-row"><div class="r-cell" contenteditable="true">교습 시작 전</div><div class="r-cell" contenteditable="true">전액 환불</div></div>
-            <div class="r-row"><div class="r-cell" contenteditable="true">1/3 경과 전</div><div class="r-cell" contenteditable="true">2/3 금액 환불</div></div>
-            <div class="r-row"><div class="r-cell" contenteditable="true">1/2 경과 전</div><div class="r-cell" contenteditable="true">1/2 금액 환불</div></div>
-            <div class="r-row"><div class="r-cell" contenteditable="true">1/2 경과 후</div><div class="r-cell" contenteditable="true">환불 불가</div></div>
+            <div class="r-row"><div class="r-cell" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','환불규정')">교습 시작 전</div><div class="r-cell" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','환불규정')">전액 환불</div></div>
+            <div class="r-row"><div class="r-cell" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','환불규정')">1/3 경과 전</div><div class="r-cell" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','환불규정')">2/3 금액 환불</div></div>
+            <div class="r-row"><div class="r-cell" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','환불규정')">1/2 경과 전</div><div class="r-cell" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','환불규정')">1/2 금액 환불</div></div>
+            <div class="r-row"><div class="r-cell" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','환불규정')">1/2 경과 후</div><div class="r-cell" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','환불규정')">환불 불가</div></div>
           </div>
         </div>
 
@@ -477,19 +507,19 @@ body {
         <div class="section">
           <div class="sec-title">
             <div class="sec-num" style="font-size:8px;width:21px;height:21px;">💳</div>
-            <div class="sec-label">결제 안내</div>
+            <div class="sec-label" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','섹션 제목')">결제 안내</div>
           </div>
-          <div class="pay-item">
+          <div class="pay-item" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','수업규정 항목')">
             <div class="pay-icon">📱</div>
-            <div class="pay-text" contenteditable="true"><strong>카카오 알림톡으로 결제 링크가 발송</strong>됩니다.<br>링크를 눌러 간편하게 결제해 주세요.</div>
+            <div class="pay-text" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','결제안내 항목')"><strong>카카오 알림톡으로 결제 링크가 발송</strong>됩니다.<br>링크를 눌러 간편하게 결제해 주세요.</div>
           </div>
-          <div class="pay-item">
+          <div class="pay-item" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','수업규정 항목')">
             <div class="pay-icon">🏧</div>
-            <div class="pay-text" contenteditable="true">학원 내 <strong>별도 결제 단말기가 없어 현장 카드 결제가 어렵습니다.</strong><br>양해 부탁드립니다.</div>
+            <div class="pay-text" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','결제안내 항목')">학원 내 <strong>별도 결제 단말기가 없어 현장 카드 결제가 어렵습니다.</strong><br>양해 부탁드립니다.</div>
           </div>
-          <div class="pay-item">
+          <div class="pay-item" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','수업규정 항목')">
             <div class="pay-icon">💬</div>
-            <div class="pay-text" contenteditable="true">알림톡 미수신·가상계좌·분할결제가 필요하신 경우 담당자에게 말씀해 주세요.</div>
+            <div class="pay-text" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','결제안내 항목')">알림톡 미수신·가상계좌·분할결제가 필요하신 경우 담당자에게 말씀해 주세요.</div>
           </div>
         </div>
         <div class="divider"></div>
@@ -503,16 +533,16 @@ body {
         <div class="section" style="margin-top:4px;">
           <div class="sec-title">
             <div class="sec-num" style="font-size:7px;width:21px;height:21px;">Q&A</div>
-            <div class="sec-label">자주 묻는 질문</div>
+            <div class="sec-label" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','섹션 제목')">자주 묻는 질문</div>
           </div>
           <div class="faq-list">
-            <div class="faq-item">
-              <div class="faq-q" contenteditable="true">Q. 지역화폐로 결제가 가능한가요?</div>
-              <div class="faq-a" contenteditable="true">A. 지역화폐 결제는 불가합니다. 카드 또는 계좌이체로 납부해 주세요.</div>
+            <div class="faq-item" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','수업규정 항목')">
+              <div class="faq-q" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','FAQ 질문')">Q. 지역화폐로 결제가 가능한가요?</div>
+              <div class="faq-a" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','FAQ 답변')">A. 지역화폐 결제는 불가합니다. 카드 또는 계좌이체로 납부해 주세요.</div>
             </div>
-            <div class="faq-item">
-              <div class="faq-q" contenteditable="true">Q. 카드 소유주가 다른 경우 결제가 가능한가요?</div>
-              <div class="faq-a" contenteditable="true">A. 가능합니다. 해당 소유주분께 결제 링크를 별도 발송해 드립니다.</div>
+            <div class="faq-item" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','수업규정 항목')">
+              <div class="faq-q" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','FAQ 질문')">Q. 카드 소유주가 다른 경우 결제가 가능한가요?</div>
+              <div class="faq-a" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'guide','FAQ 답변')">A. 가능합니다. 해당 소유주분께 결제 링크를 별도 발송해 드립니다.</div>
             </div>
           </div>
         </div>
@@ -550,15 +580,15 @@ body {
         </div>
         <div class="pay-item">
           <div class="pay-icon">📱</div>
-          <div class="pay-text" contenteditable="true"><strong>카카오 알림톡으로 결제 링크가 발송</strong>됩니다.<br>링크를 눌러 간편하게 결제해 주세요.</div>
+          <div class="pay-text" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'pay','결제안내 항목')"><strong>카카오 알림톡으로 결제 링크가 발송</strong>됩니다.<br>링크를 눌러 간편하게 결제해 주세요.</div>
         </div>
         <div class="pay-item">
           <div class="pay-icon">🏧</div>
-          <div class="pay-text" contenteditable="true">학원 내 <strong>별도 결제 단말기가 없어 현장 카드 결제가 어렵습니다.</strong><br>양해 부탁드립니다.</div>
+          <div class="pay-text" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'pay','결제안내 항목')">학원 내 <strong>별도 결제 단말기가 없어 현장 카드 결제가 어렵습니다.</strong><br>양해 부탁드립니다.</div>
         </div>
         <div class="pay-item">
           <div class="pay-icon">💬</div>
-          <div class="pay-text" contenteditable="true">알림톡 미수신·가상계좌·분할결제가 필요하신 경우 담당자에게 말씀해 주세요.</div>
+          <div class="pay-text" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'pay','결제안내 항목')">알림톡 미수신·가상계좌·분할결제가 필요하신 경우 담당자에게 말씀해 주세요.</div>
         </div>
       </div>
       <div class="divider"></div>
@@ -576,12 +606,12 @@ body {
         </div>
         <div class="faq-list">
           <div class="faq-item">
-            <div class="faq-q">Q. 지역화폐로 결제가 가능한가요?</div>
-            <div class="faq-a">A. 지역화폐 결제는 불가합니다. 카드 또는 계좌이체로 납부해 주세요.</div>
+            <div class="faq-q" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'pay','FAQ 질문')">Q. 지역화폐로 결제가 가능한가요?</div>
+            <div class="faq-a" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'pay','FAQ 답변')">A. 지역화폐 결제는 불가합니다. 카드 또는 계좌이체로 납부해 주세요.</div>
           </div>
           <div class="faq-item">
-            <div class="faq-q">Q. 카드 소유주가 다른 경우 결제가 가능한가요?</div>
-            <div class="faq-a">A. 가능합니다. 해당 소유주분께 결제 링크를 별도 발송해 드립니다.</div>
+            <div class="faq-q" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'pay','FAQ 질문')">Q. 카드 소유주가 다른 경우 결제가 가능한가요?</div>
+            <div class="faq-a" contenteditable="true" onfocus="ceFocus(this)" onblur="ceBlur(this,'pay','FAQ 답변')">A. 가능합니다. 해당 소유주분께 결제 링크를 별도 발송해 드립니다.</div>
           </div>
         </div>
       </div>
@@ -954,9 +984,64 @@ async function capture(cardId, btnId, name) {
         const url = URL.createObjectURL(blob);
         w.document.write(`<html><head><meta name="viewport" content="width=device-width">
           <style>body{margin:0;background:#222;display:flex;flex-direction:column;align-items:center;padding:16px;gap:12px;}
-          img{max-width:100%;border-radius:8px;}p{color:#fff;font-family:sans-serif;font-size:14px;text-align:center;}</style></head>
+          img{max-width:100%;border-radius:8px;}p{color:#fff;font-family:sans-serif;font-size:14px;text-align:center;}
+/* ── 변경 이력 ── */
+#log-fab{position:fixed;bottom:22px;right:22px;width:52px;height:52px;border-radius:50%;background:#FF6B1A;color:#fff;font-size:22px;border:none;cursor:pointer;box-shadow:0 4px 16px rgba(255,107,26,.45);z-index:9000;display:flex;align-items:center;justify-content:center;transition:transform .15s;}
+#log-fab:hover{transform:scale(1.1);}
+#log-badge{position:absolute;top:-4px;right:-4px;background:#e74c3c;color:#fff;font-size:9px;font-weight:700;border-radius:10px;padding:1px 5px;display:none;}
+#log-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9100;align-items:center;justify-content:center;}
+#log-modal.open{display:flex;}
+#log-box{background:#fff;border-radius:18px;width:min(680px,96vw);max-height:82vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3);}
+#log-head{padding:16px 20px;border-bottom:2px solid #fff0e8;display:flex;align-items:center;justify-content:space-between;}
+#log-head h2{font-size:15px;font-weight:700;color:#FF6B1A;}
+#log-filters{display:flex;gap:6px;padding:10px 16px;border-bottom:1px solid #f0f0f0;flex-wrap:wrap;}
+.log-filter-btn{padding:4px 10px;border:1.5px solid #e0e0e0;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;background:#fff;color:#888;transition:all .15s;}
+.log-filter-btn.on{background:#FF6B1A;color:#fff;border-color:#FF6B1A;}
+#log-list{overflow-y:auto;flex:1;padding:10px 16px;display:flex;flex-direction:column;gap:8px;}
+.log-item{border:1.5px solid #f0f0f0;border-radius:12px;padding:10px 14px;font-size:12px;}
+.log-item:hover{border-color:#ffd4b0;background:#fffaf7;}
+.log-meta{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.log-tag{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;color:#fff;}
+.log-time{font-size:10px;color:#bbb;margin-left:auto;}
+.log-action{font-size:11px;color:#555;font-weight:700;}
+.log-diff{display:flex;flex-direction:column;gap:3px;margin-top:4px;}
+.log-before{background:#fff0f0;border-radius:6px;padding:4px 8px;color:#c0392b;font-size:11px;}
+.log-after{background:#f0fff4;border-radius:6px;padding:4px 8px;color:#27ae60;font-size:11px;}
+.log-single{background:#f5f5f5;border-radius:6px;padding:4px 8px;color:#555;font-size:11px;}
+#log-empty{text-align:center;padding:40px;color:#bbb;font-size:13px;}
+#log-foot{padding:10px 16px;border-top:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;}
+#log-foot span{font-size:11px;color:#bbb;}
+#log-clear-btn{padding:5px 12px;border:1.5px solid #ffb3b3;border-radius:8px;background:#fff;color:#e74c3c;font-size:11px;font-weight:700;cursor:pointer;}
+#log-clear-btn:hover{background:#fff0f0;}
+
+</style></head>
           <body><p>📱 이미지를 <b>길게 눌러</b> 저장 후 카톡으로 전송하세요</p>
-          <img src="${url}"/></body></html>`);
+          <img src="${url}"/>
+<!-- 변경 이력 FAB -->
+<button id="log-fab" onclick="openLogModal()" title="변경 이력 보기">
+  🕐<span id="log-badge"></span>
+</button>
+<!-- 변경 이력 모달 -->
+<div id="log-modal" onclick="if(event.target===this)closeLogModal()">
+  <div id="log-box">
+    <div id="log-head">
+      <h2>📋 변경 이력</h2>
+      <button onclick="closeLogModal()" style="border:none;background:none;font-size:20px;cursor:pointer;color:#aaa;">✕</button>
+    </div>
+    <div id="log-filters">
+      <button class="log-filter-btn on" onclick="setLogFilter('all',this)">전체</button>
+      <button class="log-filter-btn" onclick="setLogFilter('guide',this)">📋 수업안내문</button>
+      <button class="log-filter-btn" onclick="setLogFilter('pay',this)">💳 결제안내문</button>
+    </div>
+    <div id="log-list"></div>
+    <div id="log-foot">
+      <span id="log-count-txt"></span>
+      <button id="log-clear-btn" onclick="clearLogs()">🗑️ 이력 전체 삭제</button>
+    </div>
+  </div>
+</div>
+
+</body></html>`);
         btn.textContent = '✅ 새 탭에서 이미지 저장하세요';
       } else {
         const a = document.createElement('a');
@@ -1012,9 +1097,127 @@ function loadData() {
   } catch(e) {}
 }
 
+
+// ════════════════════════════════════════════
+//  변경 이력 시스템 (수업안내문 / 결제안내문)
+// ════════════════════════════════════════════
+const CARD_LOG_KEY   = 'wawa_card_logs';
+const CARD_LOG_LIMIT = 300;
+let   _cardLogFilter = 'all';
+
+const CARD_SECTION_META = {
+  guide: { label:'수업안내문', color:'#2980b9', emoji:'📋' },
+  pay:   { label:'결제안내문', color:'#f39c12', emoji:'💳' },
+};
+
+function getCardLogs(){ try{ return JSON.parse(localStorage.getItem(CARD_LOG_KEY)||'[]'); }catch(e){return[];} }
+function saveCardLogs(arr){ try{ localStorage.setItem(CARD_LOG_KEY,JSON.stringify(arr)); }catch(e){} }
+
+function pushCardLog(section, action, detail){
+  const logs = getCardLogs();
+  logs.unshift({ id:Date.now(), ts:new Date().toISOString(), section, action, detail });
+  if(logs.length > CARD_LOG_LIMIT) logs.length = CARD_LOG_LIMIT;
+  saveCardLogs(logs);
+  updateCardLogBadge();
+}
+
+function fmtTs(iso){
+  const d=new Date(iso), pad=n=>String(n).padStart(2,'0');
+  return d.getFullYear()+'.'+pad(d.getMonth()+1)+'.'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes());
+}
+
+function updateCardLogBadge(){
+  const badge=document.getElementById('log-badge');
+  if(!badge) return;
+  const logs=getCardLogs();
+  if(logs.length>0){badge.textContent=logs.length>99?'99+':logs.length;badge.style.display='block';}
+  else badge.style.display='none';
+}
+
+function setLogFilter(f,el){
+  _cardLogFilter=f;
+  document.querySelectorAll('.log-filter-btn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  renderCardLogList();
+}
+
+function renderCardLogList(){
+  const logs=getCardLogs().filter(l=>_cardLogFilter==='all'||l.section===_cardLogFilter);
+  const list=document.getElementById('log-list');
+  const countTxt=document.getElementById('log-count-txt');
+  if(!list) return;
+  if(logs.length===0){
+    list.innerHTML='<div id="log-empty">아직 변경 이력이 없습니다 ✨</div>';
+    if(countTxt) countTxt.textContent='';
+    return;
+  }
+  if(countTxt) countTxt.textContent='총 '+logs.length+'건';
+  list.innerHTML=logs.map(l=>{
+    const m=CARD_SECTION_META[l.section]||CARD_SECTION_META.guide;
+    const hasDiff=l.detail&&(l.detail.before!==undefined||l.detail.after!==undefined);
+    const diffHtml=hasDiff
+      ? '<div class="log-diff">'+(l.detail.before!==undefined?'<div class="log-before">이전: '+l.detail.before+'</div>':'')+(l.detail.after!==undefined?'<div class="log-after">이후: '+l.detail.after+'</div>':'')+'</div>'
+      : (l.detail&&l.detail.text?'<div class="log-diff"><div class="log-single">'+l.detail.text+'</div></div>':'');
+    return '<div class="log-item"><div class="log-meta"><span class="log-tag" style="background:'+m.color+'">'+m.emoji+' '+m.label+'</span><span class="log-action">'+l.action+'</span><span class="log-time">'+fmtTs(l.ts)+'</span></div>'+diffHtml+'</div>';
+  }).join('');
+}
+
+function openLogModal(){
+  renderCardLogList();
+  document.getElementById('log-modal').classList.add('open');
+}
+function closeLogModal(){
+  document.getElementById('log-modal').classList.remove('open');
+}
+function clearLogs(){
+  if(!confirm('변경 이력을 모두 삭제할까요?')) return;
+  saveCardLogs([]);
+  updateCardLogBadge();
+  renderCardLogList();
+}
+
+// contenteditable 텍스트 변경 이력 기록
+let _ceSnap = '';
+function ceFocus(el){ _ceSnap = el.innerText.trim(); }
+function ceBlur(el, section, label){
+  const after = el.innerText.trim();
+  if(after !== _ceSnap){
+    pushCardLog(section, label+' 수정', { before:_ceSnap, after:after });
+    saveData();
+  }
+  _ceSnap = '';
+}
+
+
 // 초기화
 loadData();
 renderSubjectList();
+updateCardLogBadge();
 </script>
+
+<!-- 변경 이력 FAB -->
+<button id="log-fab" onclick="openLogModal()" title="변경 이력 보기">
+  🕐<span id="log-badge"></span>
+</button>
+<!-- 변경 이력 모달 -->
+<div id="log-modal" onclick="if(event.target===this)closeLogModal()">
+  <div id="log-box">
+    <div id="log-head">
+      <h2>📋 변경 이력</h2>
+      <button onclick="closeLogModal()" style="border:none;background:none;font-size:20px;cursor:pointer;color:#aaa;">✕</button>
+    </div>
+    <div id="log-filters">
+      <button class="log-filter-btn on" onclick="setLogFilter('all',this)">전체</button>
+      <button class="log-filter-btn" onclick="setLogFilter('guide',this)">📋 수업안내문</button>
+      <button class="log-filter-btn" onclick="setLogFilter('pay',this)">💳 결제안내문</button>
+    </div>
+    <div id="log-list"></div>
+    <div id="log-foot">
+      <span id="log-count-txt"></span>
+      <button id="log-clear-btn" onclick="clearLogs()">🗑️ 이력 전체 삭제</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
