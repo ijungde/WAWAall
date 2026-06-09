@@ -214,6 +214,14 @@ function saveAlimi() {
       holInput: $('hol-input').value,
       nItems:  nItems,
     };
+    // contenteditable 텍스트 저장 (이달의 공지, 결제안내)
+    const ceData = {};
+    document.querySelectorAll('[data-ce-id]').forEach(el => {
+      ceData[el.dataset.ceId] = el.innerHTML;
+    });
+    data.ceData = ceData;
+    // 이달의 공지 항목 전체 저장 (동적 추가 포함)
+    data.sNoticeHTML = $('s-notice').innerHTML;
     localStorage.setItem('wawa_alimi', JSON.stringify(data));
   } catch(e) {}
 }
@@ -248,6 +256,15 @@ function loadAlimi() {
     if (Array.isArray(d.customHols)) customHols = d.customHols;
     if (d.holInput) $('hol-input').value = d.holInput;
     if (Array.isArray(d.nItems)  && d.nItems.length)  nItems  = d.nItems;
+    // 이달의 공지 항목 전체 복원 (동적 추가 포함)
+    if (d.sNoticeHTML) $('s-notice').innerHTML = d.sNoticeHTML;
+    // contenteditable 텍스트 복원 (결제안내 pay-txt 등)
+    if (d.ceData && typeof d.ceData === 'object') {
+      document.querySelectorAll('[data-ce-id]').forEach(el => {
+        const saved = d.ceData[el.dataset.ceId];
+        if (saved !== undefined) el.innerHTML = saved;
+      });
+    }
   } catch(e) {}
 }
 </script>
@@ -605,24 +622,24 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
           <div class="notice-card">
             <div class="notice-hd">📢 이달의 공지</div>
             <div id="s-notice">
-              <div class="notice-item"><span class="notice-dot">●</span><span class="notice-line-txt" contenteditable="true" spellcheck="false">6월 : 시험대비 기간</span></div>
-              <div class="notice-item"><span class="notice-dot">●</span><span class="notice-line-txt" contenteditable="true" spellcheck="false">주말 보강반 운영</span></div>
-              <div class="notice-item"><span class="notice-dot">●</span><span class="notice-line-txt" contenteditable="true" spellcheck="false">각 과목별 보강 일정 확인</span></div>
+              <div class="notice-item"><span class="notice-dot">●</span><span class="notice-line-txt" contenteditable="true" spellcheck="false" data-ce-id="alimi-ce001" onblur="saveAlimi()">6월 : 시험대비 기간</span></div>
+              <div class="notice-item"><span class="notice-dot">●</span><span class="notice-line-txt" contenteditable="true" spellcheck="false" data-ce-id="alimi-ce002" onblur="saveAlimi()">주말 보강반 운영</span></div>
+              <div class="notice-item"><span class="notice-dot">●</span><span class="notice-line-txt" contenteditable="true" spellcheck="false" data-ce-id="alimi-ce003" onblur="saveAlimi()">각 과목별 보강 일정 확인</span></div>
             </div>
           </div>
           <div class="pay-card">
             <div class="pay-hd">📌 결제 안내</div>
             <div class="pay-item">
               <span class="pay-badge">결제</span>
-              <span class="pay-txt" contenteditable="true" spellcheck="false">카카오 알림톡으로 결제 링크를 발송해 드립니다.</span>
+              <span class="pay-txt" contenteditable="true" spellcheck="false" data-ce-id="alimi-ce004" onblur="saveAlimi()">카카오 알림톡으로 결제 링크를 발송해 드립니다.</span>
             </div>
             <div class="pay-item">
               <span class="pay-badge">문의</span>
-              <span class="pay-txt" contenteditable="true" spellcheck="false">현장 카드 단말기가 없어 현장 결제가 어렵습니다. 가상계좌·분할결제 문의 가능합니다.</span>
+              <span class="pay-txt" contenteditable="true" spellcheck="false" data-ce-id="alimi-ce005" onblur="saveAlimi()">현장 카드 단말기가 없어 현장 결제가 어렵습니다. 가상계좌·분할결제 문의 가능합니다.</span>
             </div>
             <div class="pay-item">
               <span class="pay-badge">지역화폐</span>
-              <span class="pay-txt" contenteditable="true" spellcheck="false">지역화폐 결제는 어렵습니다. 양해 부탁드립니다.</span>
+              <span class="pay-txt" contenteditable="true" spellcheck="false" data-ce-id="alimi-ce006" onblur="saveAlimi()">지역화폐 결제는 어렵습니다. 양해 부탁드립니다.</span>
             </div>
           </div>
         </div>
@@ -818,7 +835,7 @@ function renderNaesinSlide(){
     <div class="naesin-row">
       <div class="naesin-chk"><svg viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5 4.5-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <span class="naesin-txt" style="font-size:${s}px;" contenteditable="true" spellcheck="false"
-        onblur="const _prev=naesin[${i}];naesin[${i}]=this.textContent;syncNaesinCtrl();saveAlimi();if(_prev!==this.textContent)logChange('naesin','내용 수정',{before:_prev,after:this.textContent})">${t}</span>
+        onblur="const _prev=naesin[${i}];naesin[${i}]=this.textContent;syncNaesinCtrl();saveAlimi();if(_prev!==this.textContent)logChange('naesin','내용 수정',{before:_prev,after:this.textContent})" data-ce-id="alimi-ce007">${t}</span>
     </div>`).join('');
 }
 function syncNaesinCtrl(){
@@ -836,8 +853,8 @@ function renderRulesSlide(){
   $('s-rules').innerHTML=rules.map((t,i)=>{
     const isArrow=t.startsWith('→');
     return isArrow
-      ? `<div class="rules-row"><span class="rules-txt" style="font-size:${s}px;padding-left:13px;" contenteditable="true" spellcheck="false" onblur="const _prev=rules[${i}];rules[${i}]=this.textContent;syncRulesCtrl();saveAlimi();if(_prev!==this.textContent)logChange('rules','내용 수정',{before:_prev,after:this.textContent})">${t}</span></div>`
-      : `<div class="rules-row"><div class="rules-dot"></div><span class="rules-txt" style="font-size:${s}px;" contenteditable="true" spellcheck="false" onblur="const _prev=rules[${i}];rules[${i}]=this.textContent;syncRulesCtrl();saveAlimi();if(_prev!==this.textContent)logChange('rules','내용 수정',{before:_prev,after:this.textContent})">${t}</span></div>`;
+      ? `<div class="rules-row"><span class="rules-txt" style="font-size:${s}px;padding-left:13px;" contenteditable="true" spellcheck="false" onblur="const _prev=rules[${i}];rules[${i}]=this.textContent;syncRulesCtrl();saveAlimi();if(_prev!==this.textContent)logChange('rules','내용 수정',{before:_prev,after:this.textContent})" data-ce-id="alimi-ce008">${t}</span></div>`
+      : `<div class="rules-row"><div class="rules-dot"></div><span class="rules-txt" style="font-size:${s}px;" contenteditable="true" spellcheck="false" onblur="const _prev=rules[${i}];rules[${i}]=this.textContent;syncRulesCtrl();saveAlimi();if(_prev!==this.textContent)logChange('rules','내용 수정',{before:_prev,after:this.textContent})" data-ce-id="alimi-ce009">${t}</span></div>`;
   }).join('');
 }
 function syncRulesCtrl(){
@@ -912,8 +929,8 @@ function closePop(){$('overlay').classList.remove('on');}
 function closeOut(e){if(e.target===$('overlay'))closePop();}
 
 // ── 공지 ──
-function addNotice(){const w=$('s-notice');const s=$('r-p').value;const d=document.createElement('div');d.className='notice-item';d.innerHTML=`<span class="notice-dot">●</span><span class="notice-line-txt" contenteditable="true" spellcheck="false" style="font-size:${s}px;">새 공지 내용</span>`;w.appendChild(d);d.querySelector('.notice-line-txt').focus();}
-function delNotice(){const w=$('s-notice');if(w.children.length>1)w.removeChild(w.lastElementChild);}
+function addNotice(){const w=$('s-notice');const s=$('r-p').value;const d=document.createElement('div');d.className='notice-item';d.innerHTML=`<span class="notice-dot">●</span><span class="notice-line-txt" contenteditable="true" spellcheck="false" style="font-size:${s}px;" onblur="saveAlimi()">새 공지 내용</span>`;w.appendChild(d);d.querySelector('.notice-line-txt').focus();saveAlimi();}
+function delNotice(){const w=$('s-notice');if(w.children.length>1){w.removeChild(w.lastElementChild);saveAlimi();}}
 
 // ── 스타일 ──
 function sz(cls,v){document.querySelectorAll('.'+cls).forEach(el=>el.style.fontSize=v+'px');}
@@ -1234,6 +1251,14 @@ function saveAlimi() {
       holInput: $('hol-input').value,
       nItems:  nItems,
     };
+    // contenteditable 텍스트 저장 (이달의 공지, 결제안내)
+    const ceData = {};
+    document.querySelectorAll('[data-ce-id]').forEach(el => {
+      ceData[el.dataset.ceId] = el.innerHTML;
+    });
+    data.ceData = ceData;
+    // 이달의 공지 항목 전체 저장 (동적 추가 포함)
+    data.sNoticeHTML = $('s-notice').innerHTML;
     localStorage.setItem('wawa_alimi', JSON.stringify(data));
   } catch(e) {}
 }
@@ -1268,6 +1293,15 @@ function loadAlimi() {
     if (Array.isArray(d.customHols)) customHols = d.customHols;
     if (d.holInput) $('hol-input').value = d.holInput;
     if (Array.isArray(d.nItems)  && d.nItems.length)  nItems  = d.nItems;
+    // 이달의 공지 항목 전체 복원 (동적 추가 포함)
+    if (d.sNoticeHTML) $('s-notice').innerHTML = d.sNoticeHTML;
+    // contenteditable 텍스트 복원 (결제안내 pay-txt 등)
+    if (d.ceData && typeof d.ceData === 'object') {
+      document.querySelectorAll('[data-ce-id]').forEach(el => {
+        const saved = d.ceData[el.dataset.ceId];
+        if (saved !== undefined) el.innerHTML = saved;
+      });
+    }
   } catch(e) {}
 }
 </script>
