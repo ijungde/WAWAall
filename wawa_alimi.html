@@ -63,10 +63,10 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
 .naesin-row{display:flex;align-items:flex-start;gap:7px;margin-bottom:8px;}
 .naesin-chk{width:18px;height:18px;border-radius:50%;flex-shrink:0;margin-top:1px;background:var(--og);display:flex;align-items:center;justify-content:center;}
 .naesin-chk svg{width:10px;height:10px;}
-.naesin-txt{font-size:11.5px;color:var(--text);line-height:1.5;font-weight:500;flex:1;}
+.naesin-txt{font-size:11.5px;color:var(--text);line-height:1.5;font-weight:500;flex:1;border-radius:3px;padding:1px 3px;cursor:text;outline:none;}
 .rules-row{display:flex;align-items:flex-start;gap:7px;margin-bottom:8px;}
 .rules-dot{width:6px;height:6px;border-radius:50%;background:var(--pink);flex-shrink:0;margin-top:6px;}
-.rules-txt{font-size:12.5px;color:#333;line-height:1.65;font-weight:700;}
+.rules-txt{font-size:12.5px;color:#333;line-height:1.65;font-weight:700;border-radius:3px;padding:1px 3px;cursor:text;outline:none;}
 
 /* 달력 */
 .cal-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 14px rgba(0,0,0,.07);border:1.5px solid #f0f0f0;margin-bottom:14px;}
@@ -91,14 +91,14 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
 .notice-hd{font-size:13px;font-weight:700;color:var(--og);display:flex;align-items:center;gap:7px;margin-bottom:10px;}
 .notice-item{display:flex;align-items:flex-start;gap:7px;margin-bottom:8px;}
 .notice-dot{color:var(--og);font-size:8px;margin-top:5px;flex-shrink:0;}
-.notice-line-txt{font-size:11.5px;color:#333;line-height:1.6;outline:none;flex:1;}
-.notice-line-txt:focus{border-bottom:1px dashed #FFB07A;}
+.notice-line-txt{font-size:11.5px;color:#333;line-height:1.6;outline:none;flex:1;border-radius:3px;padding:1px 3px;cursor:text;transition:background .15s;}
+.notice-line-txt:hover{background:rgba(255,107,26,.1);}.notice-line-txt:focus{background:rgba(255,107,26,.15);border-bottom:1px dashed #FFB07A;}
 .pay-card{width:220px;flex-shrink:0;background:#fff;border-radius:12px;padding:14px;box-shadow:0 2px 14px rgba(0,0,0,.07);border:1.5px solid #f0f0f0;}
 .pay-hd{font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px;margin-bottom:10px;}
 .pay-item{display:flex;align-items:flex-start;gap:7px;margin-bottom:8px;line-height:1.6;}
 .pay-badge{background:var(--og);color:#fff;font-size:8.5px;font-weight:700;padding:2px 6px;border-radius:9px;white-space:nowrap;margin-top:2px;flex-shrink:0;}
-.pay-txt{font-size:10.5px;color:#555;outline:none;flex:1;}
-.pay-txt:focus{border-bottom:1px dashed #ddd;}
+.pay-txt{font-size:10.5px;color:#555;outline:none;flex:1;border-radius:3px;padding:1px 3px;cursor:text;transition:background .15s;}
+.pay-txt:hover{background:rgba(255,107,26,.08);}.pay-txt:focus{background:rgba(255,107,26,.12);border-bottom:1px dashed #FFB07A;}
 .s-footer{background:var(--og);padding:11px 20px;display:flex;align-items:center;justify-content:space-between;}
 .s-footer-note{font-size:9.5px;color:rgba(255,255,255,.8);}
 .s-footer-brand{font-size:10.5px;font-weight:700;color:#fff;display:flex;align-items:center;gap:5px;}
@@ -166,11 +166,11 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
       <div class="panel-title">⚙️ 기본 정보</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;align-items:flex-end;">
         <div><span class="lbl">연도</span>
-          <select id="c-year" class="inp" onchange="renderCal()" style="width:76px;">
+          <select id="c-year" class="inp" onchange="renderCal();saveAll()" style="width:76px;">
             <option value="2025">2025</option><option value="2026">2026</option>
           </select></div>
         <div><span class="lbl">월</span>
-          <select id="c-month" class="inp" onchange="renderCal()" style="width:64px;">
+          <select id="c-month" class="inp" onchange="renderCal();saveAll()" style="width:64px;">
             <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option>
             <option value="4">4월</option><option value="5">5월</option><option value="6">6월</option>
             <option value="7">7월</option><option value="8">8월</option><option value="9">9월</option>
@@ -178,19 +178,19 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
           </select></div>
         <div style="flex:1;"><span class="lbl">학원명</span>
           <input id="c-brand" class="inp" value="wawa. W+. 글로리드" style="width:100%;"
-            oninput="$('s-brand').textContent=this.value;$('s-fbrand').textContent=this.value"></div>
+            oninput="$('s-brand').textContent=this.value;$('s-fbrand').textContent=this.value;saveAll()"></div>
         <div><span class="lbl">🎨 색상</span>
-          <input type="color" id="c-theme" value="#FF6B1A" style="width:40px;height:33px;border:none;border-radius:8px;cursor:pointer;display:block;" oninput="applyTheme(this.value)"></div>
+          <input type="color" id="c-theme" value="#FF6B1A" style="width:40px;height:33px;border:none;border-radius:8px;cursor:pointer;display:block;" oninput="applyTheme(this.value);saveAll()"></div>
       </div>
       <div style="margin-bottom:7px;"><span class="lbl">전화번호</span>
         <input id="c-tel" class="inp" value="031 297 7001" style="width:100%;"
-          oninput="$('s-tel').textContent=this.value;$('s-ftel').textContent=this.value"></div>
+          oninput="$('s-tel').textContent=this.value;$('s-ftel').textContent=this.value;saveAll()"></div>
       <div style="margin-bottom:7px;"><span class="lbl">헤더 부제 (예: 따뜻하고 책임감 넘치는)</span>
         <input id="c-hsub" class="inp" value="따뜻하고 책임감 넘치는" style="width:100%;"
-          oninput="$('s-hsub').textContent=this.value"></div>
+          oninput="$('s-hsub').textContent=this.value;saveAll()"></div>
       <div><span class="lbl">헤더 메인 타이틀</span>
         <input id="c-htitle" class="inp" value="우리 학원  알리미" style="width:100%;"
-          oninput="$('s-htitle').textContent=this.value"></div>
+          oninput="$('s-htitle').textContent=this.value;saveAll()"></div>
     </div>
 
     <!-- 글씨 크기 — 위로 -->
@@ -198,16 +198,16 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
       <div class="panel-title">🔠 글씨 크기 & 글꼴</div>
       <div style="display:flex;flex-direction:column;gap:6px;">
         <div class="rw"><span style="font-size:10px;color:#aaa;width:55px;">내신항목</span>
-          <input type="range" id="r-n" min="10" max="16" value="11" oninput="sz('naesin-txt',this.value);$('rv-n').textContent=this.value+'px'">
+          <input type="range" id="r-n" min="10" max="16" value="11" oninput="sz('naesin-txt',this.value);$('rv-n').textContent=this.value+'px';saveAll()">
           <span id="rv-n" class="rv">11px</span></div>
         <div class="rw"><span style="font-size:10px;color:#aaa;width:55px;">지켜주세요</span>
-          <input type="range" id="r-ru" min="10" max="18" value="12" oninput="sz('rules-txt',this.value);$('rv-ru').textContent=this.value+'px'">
+          <input type="range" id="r-ru" min="10" max="18" value="12" oninput="sz('rules-txt',this.value);$('rv-ru').textContent=this.value+'px';saveAll()">
           <span id="rv-ru" class="rv">12px</span></div>
         <div class="rw"><span style="font-size:10px;color:#aaa;width:55px;">달력글씨</span>
-          <input type="range" id="r-c" min="7" max="12" value="9" oninput="renderCal();$('rv-c').textContent=this.value+'px'">
+          <input type="range" id="r-c" min="7" max="12" value="9" oninput="renderCal();$('rv-c').textContent=this.value+'px';saveAll()">
           <span id="rv-c" class="rv">9px</span></div>
         <div class="rw"><span style="font-size:10px;color:#aaa;width:55px;">공지</span>
-          <input type="range" id="r-p" min="10" max="18" value="11" oninput="sz('notice-line-txt',this.value);$('rv-p').textContent=this.value+'px'">
+          <input type="range" id="r-p" min="10" max="18" value="11" oninput="sz('notice-line-txt',this.value);$('rv-p').textContent=this.value+'px';saveAll()">
           <span id="rv-p" class="rv">11px</span></div>
         <div class="rw"><span style="font-size:10px;color:#aaa;width:55px;">글꼴</span>
           <select id="c-font" class="inp" style="font-size:11px;padding:4px 6px;" onchange="applyFont(this.value)">
@@ -258,7 +258,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
     <div class="panel">
       <div class="panel-title">📝 하단 안내문</div>
       <input id="c-note" class="inp" value="* 상기 일정은 학원 사정에 따라 변경될 수 있습니다." style="width:100%;font-size:11px;"
-        oninput="$('s-note').textContent=this.value">
+        oninput="$('s-note').textContent=this.value;saveAll()">
     </div>
 
     <!-- 일정 종류 — 맨 아래 -->
@@ -327,24 +327,24 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
           <div class="notice-card">
             <div class="notice-hd">📢 이달의 공지</div>
             <div id="s-notice">
-              <div class="notice-item"><span class="notice-dot">●</span><span class="notice-line-txt" contenteditable="true" spellcheck="false">6월 : 시험대비 기간</span></div>
-              <div class="notice-item"><span class="notice-dot">●</span><span class="notice-line-txt" contenteditable="true" spellcheck="false">주말 보강반 운영</span></div>
-              <div class="notice-item"><span class="notice-dot">●</span><span class="notice-line-txt" contenteditable="true" spellcheck="false">각 과목별 보강 일정 확인</span></div>
+              <div class="notice-item"><span class="notice-dot">●</span><span class="notice-line-txt" contenteditable="true" spellcheck="false" onblur="saveAll()">6월 : 시험대비 기간</span></div>
+              <div class="notice-item"><span class="notice-dot">●</span><span class="notice-line-txt" contenteditable="true" spellcheck="false" onblur="saveAll()">주말 보강반 운영</span></div>
+              <div class="notice-item"><span class="notice-dot">●</span><span class="notice-line-txt" contenteditable="true" spellcheck="false" onblur="saveAll()">각 과목별 보강 일정 확인</span></div>
             </div>
           </div>
           <div class="pay-card">
             <div class="pay-hd">📌 결제 안내</div>
             <div class="pay-item">
               <span class="pay-badge">결제</span>
-              <span class="pay-txt" contenteditable="true" spellcheck="false">카카오 알림톡으로 결제 링크를 발송해 드립니다.</span>
+              <span class="pay-txt" contenteditable="true" spellcheck="false" onblur="saveAll()">카카오 알림톡으로 결제 링크를 발송해 드립니다.</span>
             </div>
             <div class="pay-item">
               <span class="pay-badge">문의</span>
-              <span class="pay-txt" contenteditable="true" spellcheck="false">현장 카드 단말기가 없어 현장 결제가 어렵습니다. 가상계좌·분할결제 문의 가능합니다.</span>
+              <span class="pay-txt" contenteditable="true" spellcheck="false" onblur="saveAll()">현장 카드 단말기가 없어 현장 결제가 어렵습니다. 가상계좌·분할결제 문의 가능합니다.</span>
             </div>
             <div class="pay-item">
               <span class="pay-badge">지역화폐</span>
-              <span class="pay-txt" contenteditable="true" spellcheck="false">지역화폐 결제는 어렵습니다. 양해 부탁드립니다.</span>
+              <span class="pay-txt" contenteditable="true" spellcheck="false" onblur="saveAll()">지역화폐 결제는 어렵습니다. 양해 부탁드립니다.</span>
             </div>
           </div>
         </div>
@@ -375,23 +375,23 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
       <div class="panel-title">📢 안내문 설정</div>
       <div style="display:flex;gap:8px;margin-bottom:8px;">
         <div style="flex:1;"><span class="lbl">안내문 제목</span>
-          <input id="n-title" class="inp" value="공휴일 수업 안내" style="width:100%;" oninput="renderNotice()"></div>
+          <input id="n-title" class="inp" value="공휴일 수업 안내" style="width:100%;" oninput="renderNotice();saveAll()"></div>
         <div><span class="lbl">🎨 테마색</span>
-          <input type="color" id="n-color" value="#FF6B1A" style="width:40px;height:33px;border:none;border-radius:8px;cursor:pointer;display:block;" oninput="renderNotice()"></div>
+          <input type="color" id="n-color" value="#FF6B1A" style="width:40px;height:33px;border:none;border-radius:8px;cursor:pointer;display:block;" oninput="renderNotice();saveAll()"></div>
       </div>
       <div style="margin-bottom:8px;"><span class="lbl">부제</span>
-        <input id="n-sub" class="inp" value="해당 날짜 수업 일정을 안내드립니다" style="width:100%;" oninput="renderNotice()"></div>
+        <input id="n-sub" class="inp" value="해당 날짜 수업 일정을 안내드립니다" style="width:100%;" oninput="renderNotice();saveAll()"></div>
       <div>
         <span class="lbl" style="margin-bottom:5px;display:block;">🏷️ 상단 로고 선택 (복수 선택 가능)</span>
         <div style="display:flex;gap:7px;flex-wrap:wrap;">
           <label style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;cursor:pointer;background:#FFF5EE;padding:5px 11px;border-radius:20px;border:1.5px solid #FFD4B0;">
-            <input type="checkbox" id="n-logo-wawa" checked onchange="renderNotice()"> wawa
+            <input type="checkbox" id="n-logo-wawa" checked onchange="renderNotice();saveAll()"> wawa
           </label>
           <label style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;cursor:pointer;background:#FFF5EE;padding:5px 11px;border-radius:20px;border:1.5px solid #FFD4B0;">
-            <input type="checkbox" id="n-logo-wplus" checked onchange="renderNotice()"> W+
+            <input type="checkbox" id="n-logo-wplus" checked onchange="renderNotice();saveAll()"> W+
           </label>
           <label style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;cursor:pointer;background:#FFF5EE;padding:5px 11px;border-radius:20px;border:1.5px solid #FFD4B0;">
-            <input type="checkbox" id="n-logo-glory" checked onchange="renderNotice()"> 글로리드
+            <input type="checkbox" id="n-logo-glory" checked onchange="renderNotice();saveAll()"> 글로리드
           </label>
         </div>
       </div>
@@ -402,13 +402,13 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
       <div class="panel-title">🔠 글씨 크기</div>
       <div style="display:flex;flex-direction:column;gap:6px;">
         <div class="rw"><span style="font-size:10px;color:#aaa;width:55px;">제목</span>
-          <input type="range" id="n-title-sz" min="18" max="42" value="28" oninput="renderNotice();$('n-tsz-v').textContent=this.value+'px'">
+          <input type="range" id="n-title-sz" min="18" max="42" value="28" oninput="renderNotice();$('n-tsz-v').textContent=this.value+'px';saveAll()">
           <span id="n-tsz-v" class="rv">28px</span></div>
         <div class="rw"><span style="font-size:10px;color:#aaa;width:55px;">날짜뱃지</span>
-          <input type="range" id="n-date-sz" min="10" max="24" value="14" oninput="renderNotice();$('n-dsz-v').textContent=this.value+'px'">
+          <input type="range" id="n-date-sz" min="10" max="24" value="14" oninput="renderNotice();$('n-dsz-v').textContent=this.value+'px';saveAll()">
           <span id="n-dsz-v" class="rv">14px</span></div>
         <div class="rw"><span style="font-size:10px;color:#aaa;width:55px;">내용</span>
-          <input type="range" id="n-body-sz" min="12" max="30" value="16" oninput="renderNotice();$('n-bsz-v').textContent=this.value+'px'">
+          <input type="range" id="n-body-sz" min="12" max="30" value="16" oninput="renderNotice();$('n-bsz-v').textContent=this.value+'px';saveAll()">
           <span id="n-bsz-v" class="rv">16px</span></div>
       </div>
     </div>
@@ -422,11 +422,11 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
     <div class="panel">
       <div class="panel-title">📝 하단 정보</div>
       <div style="margin-bottom:7px;"><span class="lbl">안내문구</span>
-        <input id="n-note" class="inp" value="* 문의사항은 담당 선생님께 연락 주세요." style="width:100%;" oninput="renderNotice()"></div>
+        <input id="n-note" class="inp" value="* 문의사항은 담당 선생님께 연락 주세요." style="width:100%;" oninput="renderNotice();saveAll()"></div>
       <div style="margin-bottom:7px;"><span class="lbl">학원 로고/이름</span>
-        <input id="n-brand" class="inp" value="wawa. W+. 글로리드" style="width:100%;" oninput="renderNotice()"></div>
+        <input id="n-brand" class="inp" value="wawa. W+. 글로리드" style="width:100%;" oninput="renderNotice();saveAll()"></div>
       <div><span class="lbl">전화번호</span>
-        <input id="n-tel" class="inp" value="수지점 031 297 7001" style="width:100%;" oninput="renderNotice()"></div>
+        <input id="n-tel" class="inp" value="수지점 031 297 7001" style="width:100%;" oninput="renderNotice();saveAll()"></div>
     </div>
   </div>
 
@@ -506,10 +506,107 @@ let nItems=[
 ];
 
 // ── 초기화 ──
+// ════════════════════════════════
+//  localStorage 저장 / 불러오기
+// ════════════════════════════════
+const STORE_KEY = 'wawa_alimi_v1';
+
+function saveAll(){
+  try{
+    // 슬라이드에서 직접 수정한 텍스트 배열 동기화
+    document.querySelectorAll('#s-naesin .naesin-txt').forEach((el,i)=>{ if(naesin[i]!==undefined) naesin[i]=el.textContent; });
+    document.querySelectorAll('#s-rules  .rules-txt' ).forEach((el,i)=>{ if(rules[i] !==undefined) rules[i] =el.textContent; });
+
+    const data = {
+      brand:  $('c-brand').value,
+      tel:    $('c-tel').value,
+      hsub:   $('c-hsub').value,
+      htitle: $('c-htitle').value,
+      note:   $('c-note').value,
+      theme:  $('c-theme').value,
+      year:   $('c-year').value,
+      month:  $('c-month').value,
+      rn:   $('r-n').value,   rru: $('r-ru').value,
+      rc:   $('r-c').value,   rp:  $('r-p').value,
+      naesin, rules, evts, legends, customHols,
+      holInput: $('hol-input') ? $('hol-input').value : '',
+      nItems,
+      sNoticeHTML: $('s-notice').innerHTML,
+      payTxts: Array.from(document.querySelectorAll('.pay-txt')).map(el=>el.innerHTML),
+      nTitle: $('n-title').value,   nColor: $('n-color').value,
+      nSub:   $('n-sub').value,     nNote:  $('n-note').value,
+      nBrand: $('n-brand').value,   nTel:   $('n-tel').value,
+      nLogoWawa:  $('n-logo-wawa').checked,
+      nLogoWplus: $('n-logo-wplus').checked,
+      nLogoGlory: $('n-logo-glory').checked,
+      nTitleSz: $('n-title-sz').value,
+      nDateSz:  $('n-date-sz').value,
+      nBodySz:  $('n-body-sz').value,
+    };
+    localStorage.setItem(STORE_KEY, JSON.stringify(data));
+  }catch(e){ console.error('saveAll 오류:', e); }
+}
+
+function loadAll(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(!raw) return;
+    const d = JSON.parse(raw);
+
+    if(d.brand)  $('c-brand').value  = d.brand;
+    if(d.tel)    $('c-tel').value    = d.tel;
+    if(d.hsub)   $('c-hsub').value   = d.hsub;
+    if(d.htitle) $('c-htitle').value = d.htitle;
+    if(d.note)   { $('c-note').value = d.note; $('s-note').textContent = d.note; }
+    if(d.theme)  { $('c-theme').value = d.theme; applyTheme(d.theme); }
+    if(d.year)   $('c-year').value  = d.year;
+    if(d.month)  $('c-month').value = d.month;
+    if(d.rn)  { $('r-n').value =d.rn;   sz('naesin-txt',d.rn);   $('rv-n').textContent =d.rn +'px'; }
+    if(d.rru) { $('r-ru').value=d.rru;  sz('rules-txt', d.rru);  $('rv-ru').textContent=d.rru+'px'; }
+    if(d.rc)  { $('r-c').value =d.rc;                             $('rv-c').textContent =d.rc +'px'; }
+    if(d.rp)  { $('r-p').value =d.rp;   sz('notice-line-txt',d.rp); $('rv-p').textContent=d.rp+'px'; }
+    if(Array.isArray(d.naesin)  && d.naesin.length)  naesin  = d.naesin;
+    if(Array.isArray(d.rules)   && d.rules.length)   rules   = d.rules;
+    if(d.evts && typeof d.evts==='object')            evts    = d.evts;
+    if(Array.isArray(d.legends) && d.legends.length) legends = d.legends;
+    if(Array.isArray(d.customHols))                   customHols = d.customHols;
+    if(d.holInput && $('hol-input'))  $('hol-input').value = d.holInput;
+    if(Array.isArray(d.nItems)  && d.nItems.length)  nItems  = d.nItems;
+    if(d.sNoticeHTML) $('s-notice').innerHTML = d.sNoticeHTML;
+    if(Array.isArray(d.payTxts)){
+      document.querySelectorAll('.pay-txt').forEach((el,i)=>{
+        if(d.payTxts[i]!==undefined) el.innerHTML = d.payTxts[i];
+      });
+    }
+    // 안내문 탭
+    if(d.nTitle) $('n-title').value = d.nTitle;
+    if(d.nColor) $('n-color').value = d.nColor;
+    if(d.nSub)   $('n-sub').value   = d.nSub;
+    if(d.nNote)  $('n-note').value  = d.nNote;
+    if(d.nBrand !== undefined) $('n-brand').value = d.nBrand;
+    if(d.nTel   !== undefined) $('n-tel').value   = d.nTel;
+    if(d.nLogoWawa  !==undefined) $('n-logo-wawa').checked  = d.nLogoWawa;
+    if(d.nLogoWplus !==undefined) $('n-logo-wplus').checked = d.nLogoWplus;
+    if(d.nLogoGlory !==undefined) $('n-logo-glory').checked = d.nLogoGlory;
+    if(d.nTitleSz){ $('n-title-sz').value=d.nTitleSz; $('n-tsz-v').textContent=d.nTitleSz+'px'; }
+    if(d.nDateSz) { $('n-date-sz').value =d.nDateSz;  $('n-dsz-v').textContent=d.nDateSz +'px'; }
+    if(d.nBodySz) { $('n-body-sz').value =d.nBodySz;  $('n-bsz-v').textContent=d.nBodySz +'px'; }
+    // 브랜드/전화 슬라이드 텍스트 동기화
+    if(d.brand)  { $('s-brand').textContent=d.brand;   $('s-fbrand').textContent=d.brand;  }
+    if(d.tel)    { $('s-tel').textContent  =d.tel;     $('s-ftel').textContent  =d.tel;    }
+    if(d.hsub)   $('s-hsub').textContent  = d.hsub;
+    if(d.htitle) $('s-htitle').textContent= d.htitle;
+    // 안내문 슬라이드 하단 브랜드/전화 직접 세팅 (renderNotice 타이밍 문제 방지)
+    if(d.nBrand !== undefined && $('ns-brand-txt')) $('ns-brand-txt').textContent = d.nBrand;
+    if(d.nTel   !== undefined && $('ns-tel-txt'))   $('ns-tel-txt').textContent   = d.nTel;
+  }catch(e){ console.error('loadAll 오류:', e); }
+}
+
 window.onload=()=>{
   const n=new Date();
-  $('c-year').value=n.getFullYear();
-  $('c-month').value=n.getMonth()+1;
+  loadAll();
+  if(!$('c-year').value)  $('c-year').value =n.getFullYear();
+  if(!$('c-month').value) $('c-month').value=n.getMonth()+1;
   renderAll();
   renderNItemsCtrl();
   renderNotice();
@@ -530,15 +627,15 @@ function switchTab(name,el){
 
 // ── 내신 ──
 function renderNaesinCtrl(){ /* 패널 목록 없음 — 슬라이드에서 직접 수정 */ }
-function addNaesin(){naesin.push('새 항목');renderNaesinCtrl();renderNaesinSlide();}
-function delNaesin(i){naesin.splice(i,1);renderNaesinCtrl();renderNaesinSlide();}
+function addNaesin(){naesin.push('새 항목');renderNaesinCtrl();renderNaesinSlide();saveAll();}
+function delNaesin(i){naesin.splice(i,1);renderNaesinCtrl();renderNaesinSlide();saveAll();}
 function renderNaesinSlide(){
   const s=$('r-n').value;
   $('s-naesin').innerHTML=naesin.map((t,i)=>`
     <div class="naesin-row">
       <div class="naesin-chk"><svg viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5 4.5-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <span class="naesin-txt" style="font-size:${s}px;" contenteditable="true" spellcheck="false"
-        onblur="naesin[${i}]=this.textContent;syncNaesinCtrl()">${t}</span>
+        onblur="naesin[${i}]=this.textContent;syncNaesinCtrl();saveAll()">${t}</span>
     </div>`).join('');
 }
 function syncNaesinCtrl(){
@@ -549,15 +646,15 @@ function syncNaesinCtrl(){
 
 // ── 지켜주세요 ──
 function renderRulesCtrl(){ /* 패널 목록 없음 — 슬라이드에서 직접 수정 */ }
-function addRule(){rules.push('새 항목');renderRulesCtrl();renderRulesSlide();}
-function delRule(i){rules.splice(i,1);renderRulesCtrl();renderRulesSlide();}
+function addRule(){rules.push('새 항목');renderRulesCtrl();renderRulesSlide();saveAll();}
+function delRule(i){rules.splice(i,1);renderRulesCtrl();renderRulesSlide();saveAll();}
 function renderRulesSlide(){
   const s=$('r-ru').value;
   $('s-rules').innerHTML=rules.map((t,i)=>{
     const isArrow=t.startsWith('→');
     return isArrow
-      ? `<div class="rules-row"><span class="rules-txt" style="font-size:${s}px;padding-left:13px;" contenteditable="true" spellcheck="false" onblur="rules[${i}]=this.textContent;syncRulesCtrl()">${t}</span></div>`
-      : `<div class="rules-row"><div class="rules-dot"></div><span class="rules-txt" style="font-size:${s}px;" contenteditable="true" spellcheck="false" onblur="rules[${i}]=this.textContent;syncRulesCtrl()">${t}</span></div>`;
+      ? `<div class="rules-row"><span class="rules-txt" style="font-size:${s}px;padding-left:13px;" contenteditable="true" spellcheck="false" onblur="rules[${i}]=this.textContent;syncRulesCtrl();saveAll()">${t}</span></div>`
+      : `<div class="rules-row"><div class="rules-dot"></div><span class="rules-txt" style="font-size:${s}px;" contenteditable="true" spellcheck="false" onblur="rules[${i}]=this.textContent;syncRulesCtrl();saveAll()">${t}</span></div>`;
   }).join('');
 }
 function syncRulesCtrl(){
@@ -570,17 +667,17 @@ function renderLegendCtrl(){
   $('legend-list').innerHTML=legends.map((l,i)=>`
     <div class="li">
       <input type="color" value="${l.color}" style="width:28px;height:26px;border:none;border-radius:5px;cursor:pointer;"
-        oninput="legends[${i}].color=this.value;renderCal()">
+        oninput="legends[${i}].color=this.value;renderCal();saveAll()">
       <input class="inp" style="flex:1;font-size:11px;" value="${l.name}"
-        oninput="legends[${i}].name=this.value">
+        oninput="legends[${i}].name=this.value;saveAll()">
       <button class="btn br" style="font-size:10px;padding:4px 8px;" onclick="delLeg(${i})">✕</button></div>`).join('');
 }
-function addLegend(){legends.push({id:nLeg++,name:'새 일정',color:'#FF6B1A'});renderLegendCtrl();}
-function delLeg(i){legends.splice(i,1);renderLegendCtrl();renderCal();}
+function addLegend(){legends.push({id:nLeg++,name:'새 일정',color:'#FF6B1A'});renderLegendCtrl();saveAll();}
+function delLeg(i){legends.splice(i,1);renderLegendCtrl();renderCal();saveAll();}
 
 // ── 공휴일 ──
-function applyCustomHols(){customHols=$('hol-input').value.split(',').map(s=>parseInt(s.trim())).filter(n=>!isNaN(n)&&n>0&&n<=31);renderCal();}
-function clearCustomHols(){customHols=[];$('hol-input').value='';renderCal();}
+function applyCustomHols(){customHols=$('hol-input').value.split(',').map(s=>parseInt(s.trim())).filter(n=>!isNaN(n)&&n>0&&n<=31);renderCal();saveAll();}
+function clearCustomHols(){customHols=[];$('hol-input').value='';renderCal();saveAll();}
 
 // ── 달력 ──
 function renderCal(){
@@ -628,12 +725,12 @@ function toggleChip(name,color,el){
 }
 function applyPop(){const t=$('pop-txt').value.trim(),c=$('pop-clr').value;if(t){if(!evts[curDay])evts[curDay]=[];evts[curDay].push({text:t,color:c});}closePop();renderCal();}
 function clearDay(){evts[curDay]=[];closePop();renderCal();}
-function closePop(){$('overlay').classList.remove('on');}
+function closePop(){$('overlay').classList.remove('on');saveAll();}
 function closeOut(e){if(e.target===$('overlay'))closePop();}
 
 // ── 공지 ──
-function addNotice(){const w=$('s-notice');const s=$('r-p').value;const d=document.createElement('div');d.className='notice-item';d.innerHTML=`<span class="notice-dot">●</span><span class="notice-line-txt" contenteditable="true" spellcheck="false" style="font-size:${s}px;">새 공지 내용</span>`;w.appendChild(d);d.querySelector('.notice-line-txt').focus();}
-function delNotice(){const w=$('s-notice');if(w.children.length>1)w.removeChild(w.lastElementChild);}
+function addNotice(){const w=$('s-notice');const s=$('r-p').value;const d=document.createElement('div');d.className='notice-item';d.innerHTML=`<span class="notice-dot">●</span><span class="notice-line-txt" contenteditable="true" spellcheck="false" style="font-size:${s}px;" onblur="saveAll()">새 공지 내용</span>`;w.appendChild(d);d.querySelector('.notice-line-txt').focus();}
+function delNotice(){const w=$('s-notice');if(w.children.length>1){w.removeChild(w.lastElementChild);saveAll();}}
 
 // ── 스타일 ──
 function sz(cls,v){document.querySelectorAll('.'+cls).forEach(el=>el.style.fontSize=v+'px');}
@@ -665,16 +762,16 @@ async function saveImg(){
 }
 
 // ── 안내문 ──
-function addNItem(){nItems.push({date:'날짜',content:'내용'});renderNItemsCtrl();renderNotice();}
-function delNItem(i){nItems.splice(i,1);renderNItemsCtrl();renderNotice();}
+function addNItem(){nItems.push({date:'날짜',content:'내용'});renderNItemsCtrl();renderNotice();saveAll();}
+function delNItem(i){nItems.splice(i,1);renderNItemsCtrl();renderNotice();saveAll();}
 function renderNItemsCtrl(){
   $('n-items-ctrl').innerHTML=nItems.map((item,i)=>`
     <div class="li" style="margin-bottom:7px;align-items:flex-start;">
       <div style="display:flex;flex-direction:column;gap:4px;flex:1;">
         <input class="inp" placeholder="날짜" value="${item.date}" style="width:100%;font-size:11px;"
-          oninput="nItems[${i}].date=this.value;renderNotice()">
+          oninput="nItems[${i}].date=this.value;renderNotice();saveAll()">
         <input class="inp" placeholder="내용" value="${item.content}" style="width:100%;font-size:11px;"
-          oninput="nItems[${i}].content=this.value;renderNotice()">
+          oninput="nItems[${i}].content=this.value;renderNotice();saveAll()">
       </div>
       <button class="btn br" style="font-size:10px;padding:4px 8px;margin-top:2px;" onclick="delNItem(${i})">✕</button>
     </div>`).join('');
