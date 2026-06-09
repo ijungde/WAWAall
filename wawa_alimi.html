@@ -5,154 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>우리학원 알리미</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
-// ── localStorage 저장/불러오기 ──
-
-
-// ── 섹션별 스냅샷 비교 헬퍼 ──
-let _snap = {};  // 변경 전 스냅샷 보관
-
-  _snap[section] = getSnapVal(section);
-}
-
-function getSnapVal(section){
-  switch(section){
-    case 'naesin':  return JSON.parse(JSON.stringify(naesin));
-    case 'rules':   return JSON.parse(JSON.stringify(rules));
-    case 'cal':     return JSON.parse(JSON.stringify(evts));
-    case 'notice':  return JSON.parse(JSON.stringify(nItems));
-    case 'pay':     return {
-      nTitle: $('n-title').value, nSub: $('n-sub').value,
-      nNote:  $('n-note').value,  nBrand: $('n-brand').value,
-      nTel:   $('n-tel').value,   nColor: $('n-color').value,
-    };
-    default: return null;
-  }
-}
-
-}
-
-  const before = section === 'pay' ? _paySnap : _snap[section];
-  const after  = getSnapVal(section);
-  if(!before) return;
-  const bStr = JSON.stringify(before);
-  const aStr = JSON.stringify(after);
-  if(bStr === aStr) return;
-  // pay는 변경된 필드만 각각 기록
-  if(section === 'pay' && typeof before === 'object' && typeof after === 'object'){
-    for(const key of Object.keys(after)){
-      if(String(before[key]) !== String(after[key])){
-        const labels = {nTitle:'제목',nSub:'부제',nNote:'안내문구',nBrand:'브랜드명',nTel:'전화번호',nColor:'테마색상'};
-      }
-    }
-  } else {
-      before: Array.isArray(before) ? before.join(' / ') : JSON.stringify(before),
-      after:  Array.isArray(after)  ? after.join(' / ')  : JSON.stringify(after),
-    });
-  }
-  if(section === 'pay') _paySnap = null;
-}
-
-
-function isStorageAvailable() {
-  try {
-    const t = '__storage_test__';
-    localStorage.setItem(t, t);
-    localStorage.removeItem(t);
-    return true;
-  } catch(e) { return false; }
-}
-
-let _storageWarnShown = false;
-function saveAlimi() {
-  if (!isStorageAvailable()) {
-    if (!_storageWarnShown) {
-      _storageWarnShown = true;
-      alert('⚠️ 브라우저 설정에 의해 데이터 저장이 차단되어 있습니다.\n시크릿 탭이거나 쿠키/사이트 데이터가 차단된 경우입니다.\n일반 탭에서 열어주세요.');
-    }
-    return;
-  }
-  try {
-    const data = {
-      year:    $('c-year').value,
-      month:   $('c-month').value,
-      brand:   $('c-brand').value,
-      tel:     $('c-tel').value,
-      hsub:    $('c-hsub').value,
-      htitle:  $('c-htitle').value,
-      theme:   $('c-theme').value,
-      note:    $('c-note').value,
-      nTitle:  $('n-title').value,
-      nColor:  $('n-color').value,
-      nSub:    $('n-sub').value,
-      nNote:   $('n-note').value,
-      nBrand:  $('n-brand').value,
-      nTel:    $('n-tel').value,
-      nLogoWawa:  $('n-logo-wawa').checked,
-      nLogoWplus: $('n-logo-wplus').checked,
-      nLogoGlory: $('n-logo-glory').checked,
-      legends: legends,
-      naesin:  naesin,
-      rules:   rules,
-      evts:    evts,
-      customHols: customHols,
-      holInput: $('hol-input').value,
-      nItems:  nItems,
-    };
-    // contenteditable 텍스트 저장 (이달의 공지, 결제안내)
-    const ceData = {};
-    document.querySelectorAll('[data-ce-id]').forEach(el => {
-      ceData[el.dataset.ceId] = el.innerHTML;
-    });
-    data.ceData = ceData;
-    // 이달의 공지 항목 전체 저장 (동적 추가 포함)
-    data.sNoticeHTML = $('s-notice').innerHTML;
-    localStorage.setItem('wawa_alimi', JSON.stringify(data));
-  } catch(e) {}
-}
-
-function loadAlimi() {
-  if (!isStorageAvailable()) return;
-  try {
-    const raw = localStorage.getItem('wawa_alimi');
-    if (!raw) return;
-    const d = JSON.parse(raw);
-    if (d.year)   $('c-year').value   = d.year;
-    if (d.month)  $('c-month').value  = d.month;
-    if (d.brand)  { $('c-brand').value  = d.brand;  $('s-brand').textContent = d.brand; $('s-fbrand').textContent = d.brand; }
-    if (d.tel)    { $('c-tel').value    = d.tel;    $('s-tel').textContent   = d.tel;   $('s-ftel').textContent   = d.tel;   }
-    if (d.hsub)   { $('c-hsub').value   = d.hsub;   $('s-hsub').textContent  = d.hsub;  }
-    if (d.htitle) { $('c-htitle').value = d.htitle; $('s-htitle').textContent= d.htitle;}
-    if (d.theme)  { $('c-theme').value  = d.theme;  applyTheme(d.theme);               }
-    if (d.note)   { $('c-note').value   = d.note;   $('s-note').textContent  = d.note;  }
-    if (d.nTitle) $('n-title').value  = d.nTitle;
-    if (d.nColor) $('n-color').value  = d.nColor;
-    if (d.nSub)   $('n-sub').value    = d.nSub;
-    if (d.nNote)  $('n-note').value   = d.nNote;
-    if (d.nBrand) $('n-brand').value  = d.nBrand;
-    if (d.nTel)   $('n-tel').value    = d.nTel;
-    $('n-logo-wawa').checked  = d.nLogoWawa  !== false;
-    $('n-logo-wplus').checked = d.nLogoWplus !== false;
-    $('n-logo-glory').checked = d.nLogoGlory !== false;
-    if (Array.isArray(d.legends) && d.legends.length) legends = d.legends;
-    if (Array.isArray(d.naesin)  && d.naesin.length)  naesin  = d.naesin;
-    if (Array.isArray(d.rules)   && d.rules.length)   rules   = d.rules;
-    if (d.evts)       evts       = d.evts;
-    if (Array.isArray(d.customHols)) customHols = d.customHols;
-    if (d.holInput) $('hol-input').value = d.holInput;
-    if (Array.isArray(d.nItems)  && d.nItems.length)  nItems  = d.nItems;
-    // 이달의 공지 항목 전체 복원 (동적 추가 포함)
-    if (d.sNoticeHTML) $('s-notice').innerHTML = d.sNoticeHTML;
-    // contenteditable 텍스트 복원 (결제안내 pay-txt 등)
-    if (d.ceData && typeof d.ceData === 'object') {
-      document.querySelectorAll('[data-ce-id]').forEach(el => {
-        const saved = d.ceData[el.dataset.ceId];
-        if (saved !== undefined) el.innerHTML = saved;
-      });
-    }
-  } catch(e) {}
-}
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root{--og:#FF6B1A;--og2:#FF8C42;--pink:#fd79a8;--text:#2d2d2d;}
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -163,8 +16,6 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
 .tab-btn{flex:1;padding:13px 8px;border:none;background:transparent;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;color:#aaa;cursor:pointer;transition:all .2s;border-bottom:3px solid transparent;}
 .tab-btn.on{color:var(--og);border-bottom-color:var(--og);background:#fff8f4;}
 .tab-btn:hover:not(.on){color:#FF8C42;background:#fffaf7;}
-.tab-btn.ext{color:#5B67CA;}
-.tab-btn.ext:hover{color:#7B87EA;background:#F0F1FF;}
 .tab-page{display:none;width:100%;max-width:1200px;}
 .tab-page.on{display:block;}
 
@@ -240,16 +91,14 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
 .notice-hd{font-size:13px;font-weight:700;color:var(--og);display:flex;align-items:center;gap:7px;margin-bottom:10px;}
 .notice-item{display:flex;align-items:flex-start;gap:7px;margin-bottom:8px;}
 .notice-dot{color:var(--og);font-size:8px;margin-top:5px;flex-shrink:0;}
-.notice-line-txt{font-size:11.5px;color:#333;line-height:1.6;outline:none;flex:1;border-radius:3px;padding:1px 3px;cursor:text;transition:background .15s;}
-.notice-line-txt:hover{background:rgba(255,107,26,0.1);}
-.notice-line-txt:focus{background:rgba(255,107,26,0.15);border-bottom:1px dashed #FFB07A;}
+.notice-line-txt{font-size:11.5px;color:#333;line-height:1.6;outline:none;flex:1;}
+.notice-line-txt:focus{border-bottom:1px dashed #FFB07A;}
 .pay-card{width:220px;flex-shrink:0;background:#fff;border-radius:12px;padding:14px;box-shadow:0 2px 14px rgba(0,0,0,.07);border:1.5px solid #f0f0f0;}
 .pay-hd{font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:6px;margin-bottom:10px;}
 .pay-item{display:flex;align-items:flex-start;gap:7px;margin-bottom:8px;line-height:1.6;}
 .pay-badge{background:var(--og);color:#fff;font-size:8.5px;font-weight:700;padding:2px 6px;border-radius:9px;white-space:nowrap;margin-top:2px;flex-shrink:0;}
-.pay-txt{font-size:10.5px;color:#555;outline:none;flex:1;border-radius:3px;padding:1px 3px;cursor:text;transition:background .15s;}
-.pay-txt:hover{background:rgba(255,107,26,0.08);}
-.pay-txt:focus{background:rgba(255,107,26,0.12);border-bottom:1px dashed #FFB07A;}
+.pay-txt{font-size:10.5px;color:#555;outline:none;flex:1;}
+.pay-txt:focus{border-bottom:1px dashed #ddd;}
 .s-footer{background:var(--og);padding:11px 20px;display:flex;align-items:center;justify-content:space-between;}
 .s-footer-note{font-size:9.5px;color:rgba(255,255,255,.8);}
 .s-footer-brand{font-size:10.5px;font-weight:700;color:#fff;display:flex;align-items:center;gap:5px;}
@@ -297,8 +146,6 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
   .slide,.notice-slide{width:100%;max-width:680px;}
   .tab-nav,.tab-page{max-width:680px;}
 }
-
-
 </style>
 </head>
 <body>
@@ -306,7 +153,6 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
 <div class="tab-nav">
   <button class="tab-btn on" onclick="switchTab('alimi',this)">📅 월간 알리미</button>
   <button class="tab-btn" onclick="switchTab('notice',this)">📢 안내문 만들기</button>
-
 </div>
 
 <!-- ══ 탭1: 월간 알리미 ══ -->
@@ -320,11 +166,11 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
       <div class="panel-title">⚙️ 기본 정보</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;align-items:flex-end;">
         <div><span class="lbl">연도</span>
-          <select id="c-year" class="inp" onchange="renderCal();saveAlimi()" style="width:76px;">
+          <select id="c-year" class="inp" onchange="renderCal()" style="width:76px;">
             <option value="2025">2025</option><option value="2026">2026</option>
           </select></div>
         <div><span class="lbl">월</span>
-          <select id="c-month" class="inp" onchange="renderCal();saveAlimi()" style="width:64px;">
+          <select id="c-month" class="inp" onchange="renderCal()" style="width:64px;">
             <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option>
             <option value="4">4월</option><option value="5">5월</option><option value="6">6월</option>
             <option value="7">7월</option><option value="8">8월</option><option value="9">9월</option>
@@ -332,19 +178,19 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
           </select></div>
         <div style="flex:1;"><span class="lbl">학원명</span>
           <input id="c-brand" class="inp" value="wawa. W+. 글로리드" style="width:100%;"
-            oninput="$('s-brand').textContent=this.value;$('s-fbrand').textContent=this.value;saveAlimi()"></div>
+            oninput="$('s-brand').textContent=this.value;$('s-fbrand').textContent=this.value"></div>
         <div><span class="lbl">🎨 색상</span>
-          <input type="color" id="c-theme" value="#FF6B1A" style="width:40px;height:33px;border:none;border-radius:8px;cursor:pointer;display:block;" oninput="applyTheme(this.value);saveAlimi()"></div>
+          <input type="color" id="c-theme" value="#FF6B1A" style="width:40px;height:33px;border:none;border-radius:8px;cursor:pointer;display:block;" oninput="applyTheme(this.value)"></div>
       </div>
       <div style="margin-bottom:7px;"><span class="lbl">전화번호</span>
-        <input id="c-tel" class="inp" value="031)000-000" style="width:100%;"
-          oninput="$('s-tel').textContent=this.value;$('s-ftel').textContent=this.value;saveAlimi()"></div>
+        <input id="c-tel" class="inp" value="031 297 7001" style="width:100%;"
+          oninput="$('s-tel').textContent=this.value;$('s-ftel').textContent=this.value"></div>
       <div style="margin-bottom:7px;"><span class="lbl">헤더 부제 (예: 따뜻하고 책임감 넘치는)</span>
         <input id="c-hsub" class="inp" value="따뜻하고 책임감 넘치는" style="width:100%;"
-          oninput="$('s-hsub').textContent=this.value;saveAlimi()"></div>
+          oninput="$('s-hsub').textContent=this.value"></div>
       <div><span class="lbl">헤더 메인 타이틀</span>
         <input id="c-htitle" class="inp" value="우리 학원  알리미" style="width:100%;"
-          oninput="$('s-htitle').textContent=this.value;saveAlimi()"></div>
+          oninput="$('s-htitle').textContent=this.value"></div>
     </div>
 
     <!-- 글씨 크기 — 위로 -->
@@ -352,19 +198,19 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
       <div class="panel-title">🔠 글씨 크기 & 글꼴</div>
       <div style="display:flex;flex-direction:column;gap:6px;">
         <div class="rw"><span style="font-size:10px;color:#aaa;width:55px;">내신항목</span>
-          <input type="range" id="r-n" min="10" max="16" value="11" oninput="sz('naesin-txt',this.value);$('rv-n');saveAlimi().textContent=this.value+'px'">
+          <input type="range" id="r-n" min="10" max="16" value="11" oninput="sz('naesin-txt',this.value);$('rv-n').textContent=this.value+'px'">
           <span id="rv-n" class="rv">11px</span></div>
         <div class="rw"><span style="font-size:10px;color:#aaa;width:55px;">지켜주세요</span>
-          <input type="range" id="r-ru" min="10" max="18" value="12" oninput="sz('rules-txt',this.value);$('rv-ru');saveAlimi().textContent=this.value+'px'">
+          <input type="range" id="r-ru" min="10" max="18" value="12" oninput="sz('rules-txt',this.value);$('rv-ru').textContent=this.value+'px'">
           <span id="rv-ru" class="rv">12px</span></div>
         <div class="rw"><span style="font-size:10px;color:#aaa;width:55px;">달력글씨</span>
-          <input type="range" id="r-c" min="7" max="12" value="9" oninput="renderCal();saveAlimi();$('rv-c').textContent=this.value+'px'">
+          <input type="range" id="r-c" min="7" max="12" value="9" oninput="renderCal();$('rv-c').textContent=this.value+'px'">
           <span id="rv-c" class="rv">9px</span></div>
         <div class="rw"><span style="font-size:10px;color:#aaa;width:55px;">공지</span>
-          <input type="range" id="r-p" min="10" max="18" value="11" oninput="sz('notice-line-txt',this.value);$('rv-p');saveAlimi().textContent=this.value+'px'">
+          <input type="range" id="r-p" min="10" max="18" value="11" oninput="sz('notice-line-txt',this.value);$('rv-p').textContent=this.value+'px'">
           <span id="rv-p" class="rv">11px</span></div>
         <div class="rw"><span style="font-size:10px;color:#aaa;width:55px;">글꼴</span>
-          <select id="c-font" class="inp" style="font-size:11px;padding:4px 6px;" onchange="applyFont(this.value);saveAlimi()">
+          <select id="c-font" class="inp" style="font-size:11px;padding:4px 6px;" onchange="applyFont(this.value)">
             <option value="'Noto Sans KR',sans-serif">기본</option>
             <option value="'Nanum Gothic',sans-serif">나눔고딕</option>
             <option value="'Malgun Gothic',sans-serif">맑은고딕</option>
@@ -412,7 +258,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
     <div class="panel">
       <div class="panel-title">📝 하단 안내문</div>
       <input id="c-note" class="inp" value="* 상기 일정은 학원 사정에 따라 변경될 수 있습니다." style="width:100%;font-size:11px;"
-        oninput="$('s-note').textContent=this.value;saveAlimi()">
+        oninput="$('s-note').textContent=this.value">
     </div>
 
     <!-- 일정 종류 — 맨 아래 -->
@@ -430,7 +276,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
       <div class="s-header">
         <div class="h-top">
           <div class="h-brand" id="s-brand">wawa. W+. 글로리드</div>
-          <div class="h-tel" id="s-tel">031)000-000</div>
+          <div class="h-tel" id="s-tel">수지점 031 297 7001</div>
         </div>
         <div class="h-main-row">
           <div>
@@ -481,24 +327,24 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
           <div class="notice-card">
             <div class="notice-hd">📢 이달의 공지</div>
             <div id="s-notice">
-              <div class="notice-item"><span class="notice-dot">●</span><span class="notice-line-txt" contenteditable="true" spellcheck="false" data-ce-id="alimi-ce001" onblur="saveAlimi()">6월 : 시험대비 기간</span></div>
-              <div class="notice-item"><span class="notice-dot">●</span><span class="notice-line-txt" contenteditable="true" spellcheck="false" data-ce-id="alimi-ce002" onblur="saveAlimi()">주말 보강반 운영</span></div>
-              <div class="notice-item"><span class="notice-dot">●</span><span class="notice-line-txt" contenteditable="true" spellcheck="false" data-ce-id="alimi-ce003" onblur="saveAlimi()">각 과목별 보강 일정 확인</span></div>
+              <div class="notice-item"><span class="notice-dot">●</span><span class="notice-line-txt" contenteditable="true" spellcheck="false">6월 : 시험대비 기간</span></div>
+              <div class="notice-item"><span class="notice-dot">●</span><span class="notice-line-txt" contenteditable="true" spellcheck="false">주말 보강반 운영</span></div>
+              <div class="notice-item"><span class="notice-dot">●</span><span class="notice-line-txt" contenteditable="true" spellcheck="false">각 과목별 보강 일정 확인</span></div>
             </div>
           </div>
           <div class="pay-card">
             <div class="pay-hd">📌 결제 안내</div>
             <div class="pay-item">
               <span class="pay-badge">결제</span>
-              <span class="pay-txt" contenteditable="true" spellcheck="false" data-ce-id="alimi-ce004" onblur="saveAlimi()">카카오 알림톡으로 결제 링크를 발송해 드립니다.</span>
+              <span class="pay-txt" contenteditable="true" spellcheck="false">카카오 알림톡으로 결제 링크를 발송해 드립니다.</span>
             </div>
             <div class="pay-item">
               <span class="pay-badge">문의</span>
-              <span class="pay-txt" contenteditable="true" spellcheck="false" data-ce-id="alimi-ce005" onblur="saveAlimi()">현장 카드 단말기가 없어 현장 결제가 어렵습니다. 가상계좌·분할결제 문의 가능합니다.</span>
+              <span class="pay-txt" contenteditable="true" spellcheck="false">현장 카드 단말기가 없어 현장 결제가 어렵습니다. 가상계좌·분할결제 문의 가능합니다.</span>
             </div>
             <div class="pay-item">
               <span class="pay-badge">지역화폐</span>
-              <span class="pay-txt" contenteditable="true" spellcheck="false" data-ce-id="alimi-ce006" onblur="saveAlimi()">지역화폐 결제는 어렵습니다. 양해 부탁드립니다.</span>
+              <span class="pay-txt" contenteditable="true" spellcheck="false">지역화폐 결제는 어렵습니다. 양해 부탁드립니다.</span>
             </div>
           </div>
         </div>
@@ -509,7 +355,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
         <div class="s-footer-brand">
           <span id="s-fbrand">wawa. W+. 글로리드</span>
           <span style="color:rgba(255,255,255,.4);">|</span>
-          <span id="s-ftel">031)000-000</span>
+          <span id="s-ftel">031 297 7001</span>
         </div>
       </div>
     </div>
@@ -529,23 +375,23 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
       <div class="panel-title">📢 안내문 설정</div>
       <div style="display:flex;gap:8px;margin-bottom:8px;">
         <div style="flex:1;"><span class="lbl">안내문 제목</span>
-          <input id="n-title" class="inp" value="공휴일 수업 안내" style="width:100%;" onfocus="" oninput="renderNotice();saveAlimi()" onchange="" ></div>
+          <input id="n-title" class="inp" value="공휴일 수업 안내" style="width:100%;" oninput="renderNotice()"></div>
         <div><span class="lbl">🎨 테마색</span>
-          <input type="color" id="n-color" value="#FF6B1A" style="width:40px;height:33px;border:none;border-radius:8px;cursor:pointer;display:block;" onfocus="" oninput="renderNotice();saveAlimi()" onchange="" ></div>
+          <input type="color" id="n-color" value="#FF6B1A" style="width:40px;height:33px;border:none;border-radius:8px;cursor:pointer;display:block;" oninput="renderNotice()"></div>
       </div>
       <div style="margin-bottom:8px;"><span class="lbl">부제</span>
-        <input id="n-sub" class="inp" value="해당 날짜 수업 일정을 안내드립니다" style="width:100%;" onfocus="" oninput="renderNotice();saveAlimi()" onchange="" ></div>
+        <input id="n-sub" class="inp" value="해당 날짜 수업 일정을 안내드립니다" style="width:100%;" oninput="renderNotice()"></div>
       <div>
         <span class="lbl" style="margin-bottom:5px;display:block;">🏷️ 상단 로고 선택 (복수 선택 가능)</span>
         <div style="display:flex;gap:7px;flex-wrap:wrap;">
           <label style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;cursor:pointer;background:#FFF5EE;padding:5px 11px;border-radius:20px;border:1.5px solid #FFD4B0;">
-            <input type="checkbox" id="n-logo-wawa" checked onfocus="" onchange="renderNotice();saveAlimi()"> wawa
+            <input type="checkbox" id="n-logo-wawa" checked onchange="renderNotice()"> wawa
           </label>
           <label style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;cursor:pointer;background:#FFF5EE;padding:5px 11px;border-radius:20px;border:1.5px solid #FFD4B0;">
-            <input type="checkbox" id="n-logo-wplus" checked onfocus="" onchange="renderNotice();saveAlimi()"> W+
+            <input type="checkbox" id="n-logo-wplus" checked onchange="renderNotice()"> W+
           </label>
           <label style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;cursor:pointer;background:#FFF5EE;padding:5px 11px;border-radius:20px;border:1.5px solid #FFD4B0;">
-            <input type="checkbox" id="n-logo-glory" checked onfocus="" onchange="renderNotice();saveAlimi()"> 글로리드
+            <input type="checkbox" id="n-logo-glory" checked onchange="renderNotice()"> 글로리드
           </label>
         </div>
       </div>
@@ -576,11 +422,11 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
     <div class="panel">
       <div class="panel-title">📝 하단 정보</div>
       <div style="margin-bottom:7px;"><span class="lbl">안내문구</span>
-        <input id="n-note" class="inp" value="* 문의사항은 담당 선생님께 연락 주세요." style="width:100%;" onfocus="" oninput="renderNotice();saveAlimi()" onchange="" ></div>
+        <input id="n-note" class="inp" value="* 문의사항은 담당 선생님께 연락 주세요." style="width:100%;" oninput="renderNotice()"></div>
       <div style="margin-bottom:7px;"><span class="lbl">학원 로고/이름</span>
-        <input id="n-brand" class="inp" value="wawa. W+. 글로리드" style="width:100%;" onfocus="" oninput="renderNotice();saveAlimi()" onchange="" ></div>
+        <input id="n-brand" class="inp" value="wawa. W+. 글로리드" style="width:100%;" oninput="renderNotice()"></div>
       <div><span class="lbl">전화번호</span>
-        <input id="n-tel" class="inp" value="031)000-000" style="width:100%;" onfocus="" oninput="renderNotice();saveAlimi()" onchange="" ></div>
+        <input id="n-tel" class="inp" value="수지점 031 297 7001" style="width:100%;" oninput="renderNotice()"></div>
     </div>
   </div>
 
@@ -604,7 +450,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:#1e1e2e;display:flex;flex-
         <div class="ns-ft-brand" id="ns-ft-brand">
           <span id="ns-brand-txt">wawa. W+. 글로리드</span>
           <span style="margin:0 4px;opacity:.5;">|</span>
-          <span id="ns-tel-txt">031)000-000</span>
+          <span id="ns-tel-txt">수지점 031 297 7001</span>
         </div>
       </div>
     </div>
@@ -662,7 +508,6 @@ let nItems=[
 // ── 초기화 ──
 window.onload=()=>{
   const n=new Date();
-  loadAlimi();
   $('c-year').value=n.getFullYear();
   $('c-month').value=n.getMonth()+1;
   renderAll();
@@ -685,12 +530,15 @@ function switchTab(name,el){
 
 // ── 내신 ──
 function renderNaesinCtrl(){ /* 패널 목록 없음 — 슬라이드에서 직접 수정 */ }
+function addNaesin(){naesin.push('새 항목');renderNaesinCtrl();renderNaesinSlide();}
+function delNaesin(i){naesin.splice(i,1);renderNaesinCtrl();renderNaesinSlide();}
 function renderNaesinSlide(){
   const s=$('r-n').value;
   $('s-naesin').innerHTML=naesin.map((t,i)=>`
     <div class="naesin-row">
       <div class="naesin-chk"><svg viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5 4.5-5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <span class="naesin-txt" style="font-size:${s}px;" contenteditable="true" spellcheck="false"
+        onblur="naesin[${i}]=this.textContent;syncNaesinCtrl()">${t}</span>
     </div>`).join('');
 }
 function syncNaesinCtrl(){
@@ -701,11 +549,15 @@ function syncNaesinCtrl(){
 
 // ── 지켜주세요 ──
 function renderRulesCtrl(){ /* 패널 목록 없음 — 슬라이드에서 직접 수정 */ }
+function addRule(){rules.push('새 항목');renderRulesCtrl();renderRulesSlide();}
+function delRule(i){rules.splice(i,1);renderRulesCtrl();renderRulesSlide();}
 function renderRulesSlide(){
   const s=$('r-ru').value;
   $('s-rules').innerHTML=rules.map((t,i)=>{
     const isArrow=t.startsWith('→');
     return isArrow
+      ? `<div class="rules-row"><span class="rules-txt" style="font-size:${s}px;padding-left:13px;" contenteditable="true" spellcheck="false" onblur="rules[${i}]=this.textContent;syncRulesCtrl()">${t}</span></div>`
+      : `<div class="rules-row"><div class="rules-dot"></div><span class="rules-txt" style="font-size:${s}px;" contenteditable="true" spellcheck="false" onblur="rules[${i}]=this.textContent;syncRulesCtrl()">${t}</span></div>`;
   }).join('');
 }
 function syncRulesCtrl(){
@@ -718,15 +570,17 @@ function renderLegendCtrl(){
   $('legend-list').innerHTML=legends.map((l,i)=>`
     <div class="li">
       <input type="color" value="${l.color}" style="width:28px;height:26px;border:none;border-radius:5px;cursor:pointer;"
-        oninput="legends[${i}].color=this.value;renderCal();saveAlimi()">
+        oninput="legends[${i}].color=this.value;renderCal()">
       <input class="inp" style="flex:1;font-size:11px;" value="${l.name}"
-        oninput="legends[${i}].name=this.value;saveAlimi()">
+        oninput="legends[${i}].name=this.value">
       <button class="btn br" style="font-size:10px;padding:4px 8px;" onclick="delLeg(${i})">✕</button></div>`).join('');
 }
-function addLegend(){legends.push({id:nLeg++,name:'새 일정',color:'#FF6B1A'});renderLegendCtrl();saveAlimi();}
-function delLeg(i){legends.splice(i,1);renderLegendCtrl();renderCal();saveAlimi();}
+function addLegend(){legends.push({id:nLeg++,name:'새 일정',color:'#FF6B1A'});renderLegendCtrl();}
+function delLeg(i){legends.splice(i,1);renderLegendCtrl();renderCal();}
 
 // ── 공휴일 ──
+function applyCustomHols(){customHols=$('hol-input').value.split(',').map(s=>parseInt(s.trim())).filter(n=>!isNaN(n)&&n>0&&n<=31);renderCal();}
+function clearCustomHols(){customHols=[];$('hol-input').value='';renderCal();}
 
 // ── 달력 ──
 function renderCal(){
@@ -772,12 +626,14 @@ function toggleChip(name,color,el){
   if(i>=0){evts[curDay].splice(i,1);el.classList.remove('on');el.style.color='';el.style.borderColor='';el.style.background='';}
   else{evts[curDay].push({text:name,color});el.classList.add('on');el.style.color=color;el.style.borderColor=color;el.style.background=color+'18';}
 }
+function applyPop(){const t=$('pop-txt').value.trim(),c=$('pop-clr').value;if(t){if(!evts[curDay])evts[curDay]=[];evts[curDay].push({text:t,color:c});}closePop();renderCal();}
+function clearDay(){evts[curDay]=[];closePop();renderCal();}
 function closePop(){$('overlay').classList.remove('on');}
 function closeOut(e){if(e.target===$('overlay'))closePop();}
 
 // ── 공지 ──
-function addNotice(){const w=$('s-notice');const s=$('r-p').value;const d=document.createElement('div');d.className='notice-item';d.innerHTML=`<span class="notice-dot">●</span><span class="notice-line-txt" contenteditable="true" spellcheck="false" style="font-size:${s}px;" onblur="saveAlimi()">새 공지 내용</span>`;w.appendChild(d);d.querySelector('.notice-line-txt').focus();saveAlimi();}
-function delNotice(){const w=$('s-notice');if(w.children.length>1){w.removeChild(w.lastElementChild);saveAlimi();}}
+function addNotice(){const w=$('s-notice');const s=$('r-p').value;const d=document.createElement('div');d.className='notice-item';d.innerHTML=`<span class="notice-dot">●</span><span class="notice-line-txt" contenteditable="true" spellcheck="false" style="font-size:${s}px;">새 공지 내용</span>`;w.appendChild(d);d.querySelector('.notice-line-txt').focus();}
+function delNotice(){const w=$('s-notice');if(w.children.length>1)w.removeChild(w.lastElementChild);}
 
 // ── 스타일 ──
 function sz(cls,v){document.querySelectorAll('.'+cls).forEach(el=>el.style.fontSize=v+'px');}
@@ -809,14 +665,16 @@ async function saveImg(){
 }
 
 // ── 안내문 ──
+function addNItem(){nItems.push({date:'날짜',content:'내용'});renderNItemsCtrl();renderNotice();}
+function delNItem(i){nItems.splice(i,1);renderNItemsCtrl();renderNotice();}
 function renderNItemsCtrl(){
   $('n-items-ctrl').innerHTML=nItems.map((item,i)=>`
     <div class="li" style="margin-bottom:7px;align-items:flex-start;">
       <div style="display:flex;flex-direction:column;gap:4px;flex:1;">
         <input class="inp" placeholder="날짜" value="${item.date}" style="width:100%;font-size:11px;"
-          oninput="const _pd=nItems[${i}].date;nItems[${i}].date=this.value;renderNotice();saveAlimi();if(_pd!==this.value)logChange('notice','날짜 수정',{before:_pd,after:this.value})">
+          oninput="nItems[${i}].date=this.value;renderNotice()">
         <input class="inp" placeholder="내용" value="${item.content}" style="width:100%;font-size:11px;"
-          oninput="const _pc=nItems[${i}].content;nItems[${i}].content=this.value;renderNotice();saveAlimi();if(_pc!==this.value)logChange('notice','내용 수정',{before:_pc,after:this.value})">
+          oninput="nItems[${i}].content=this.value;renderNotice()">
       </div>
       <button class="btn br" style="font-size:10px;padding:4px 8px;margin-top:2px;" onclick="delNItem(${i})">✕</button>
     </div>`).join('');
@@ -887,155 +745,6 @@ async function saveNotice(){
     },'image/png');
   }catch(e){console.error(e);btn.textContent='❌ 오류';btn.disabled=false;}
 }
-
-// ── localStorage 저장/불러오기 ──
-
-
-// ── 섹션별 스냅샷 비교 헬퍼 ──
-let _snap = {};  // 변경 전 스냅샷 보관
-
-  _snap[section] = getSnapVal(section);
-}
-
-function getSnapVal(section){
-  switch(section){
-    case 'naesin':  return JSON.parse(JSON.stringify(naesin));
-    case 'rules':   return JSON.parse(JSON.stringify(rules));
-    case 'cal':     return JSON.parse(JSON.stringify(evts));
-    case 'notice':  return JSON.parse(JSON.stringify(nItems));
-    case 'pay':     return {
-      nTitle: $('n-title').value, nSub: $('n-sub').value,
-      nNote:  $('n-note').value,  nBrand: $('n-brand').value,
-      nTel:   $('n-tel').value,   nColor: $('n-color').value,
-    };
-    default: return null;
-  }
-}
-
-}
-
-  const before = section === 'pay' ? _paySnap : _snap[section];
-  const after  = getSnapVal(section);
-  if(!before) return;
-  const bStr = JSON.stringify(before);
-  const aStr = JSON.stringify(after);
-  if(bStr === aStr) return;
-  // pay는 변경된 필드만 각각 기록
-  if(section === 'pay' && typeof before === 'object' && typeof after === 'object'){
-    for(const key of Object.keys(after)){
-      if(String(before[key]) !== String(after[key])){
-        const labels = {nTitle:'제목',nSub:'부제',nNote:'안내문구',nBrand:'브랜드명',nTel:'전화번호',nColor:'테마색상'};
-      }
-    }
-  } else {
-      before: Array.isArray(before) ? before.join(' / ') : JSON.stringify(before),
-      after:  Array.isArray(after)  ? after.join(' / ')  : JSON.stringify(after),
-    });
-  }
-  if(section === 'pay') _paySnap = null;
-}
-
-
-function isStorageAvailable() {
-  try {
-    const t = '__storage_test__';
-    localStorage.setItem(t, t);
-    localStorage.removeItem(t);
-    return true;
-  } catch(e) { return false; }
-}
-
-let _storageWarnShown = false;
-function saveAlimi() {
-  if (!isStorageAvailable()) {
-    if (!_storageWarnShown) {
-      _storageWarnShown = true;
-      alert('⚠️ 브라우저 설정에 의해 데이터 저장이 차단되어 있습니다.\n시크릿 탭이거나 쿠키/사이트 데이터가 차단된 경우입니다.\n일반 탭에서 열어주세요.');
-    }
-    return;
-  }
-  try {
-    const data = {
-      year:    $('c-year').value,
-      month:   $('c-month').value,
-      brand:   $('c-brand').value,
-      tel:     $('c-tel').value,
-      hsub:    $('c-hsub').value,
-      htitle:  $('c-htitle').value,
-      theme:   $('c-theme').value,
-      note:    $('c-note').value,
-      nTitle:  $('n-title').value,
-      nColor:  $('n-color').value,
-      nSub:    $('n-sub').value,
-      nNote:   $('n-note').value,
-      nBrand:  $('n-brand').value,
-      nTel:    $('n-tel').value,
-      nLogoWawa:  $('n-logo-wawa').checked,
-      nLogoWplus: $('n-logo-wplus').checked,
-      nLogoGlory: $('n-logo-glory').checked,
-      legends: legends,
-      naesin:  naesin,
-      rules:   rules,
-      evts:    evts,
-      customHols: customHols,
-      holInput: $('hol-input').value,
-      nItems:  nItems,
-    };
-    // contenteditable 텍스트 저장 (이달의 공지, 결제안내)
-    const ceData = {};
-    document.querySelectorAll('[data-ce-id]').forEach(el => {
-      ceData[el.dataset.ceId] = el.innerHTML;
-    });
-    data.ceData = ceData;
-    // 이달의 공지 항목 전체 저장 (동적 추가 포함)
-    data.sNoticeHTML = $('s-notice').innerHTML;
-    localStorage.setItem('wawa_alimi', JSON.stringify(data));
-  } catch(e) {}
-}
-
-function loadAlimi() {
-  if (!isStorageAvailable()) return;
-  try {
-    const raw = localStorage.getItem('wawa_alimi');
-    if (!raw) return;
-    const d = JSON.parse(raw);
-    if (d.year)   $('c-year').value   = d.year;
-    if (d.month)  $('c-month').value  = d.month;
-    if (d.brand)  { $('c-brand').value  = d.brand;  $('s-brand').textContent = d.brand; $('s-fbrand').textContent = d.brand; }
-    if (d.tel)    { $('c-tel').value    = d.tel;    $('s-tel').textContent   = d.tel;   $('s-ftel').textContent   = d.tel;   }
-    if (d.hsub)   { $('c-hsub').value   = d.hsub;   $('s-hsub').textContent  = d.hsub;  }
-    if (d.htitle) { $('c-htitle').value = d.htitle; $('s-htitle').textContent= d.htitle;}
-    if (d.theme)  { $('c-theme').value  = d.theme;  applyTheme(d.theme);               }
-    if (d.note)   { $('c-note').value   = d.note;   $('s-note').textContent  = d.note;  }
-    if (d.nTitle) $('n-title').value  = d.nTitle;
-    if (d.nColor) $('n-color').value  = d.nColor;
-    if (d.nSub)   $('n-sub').value    = d.nSub;
-    if (d.nNote)  $('n-note').value   = d.nNote;
-    if (d.nBrand) $('n-brand').value  = d.nBrand;
-    if (d.nTel)   $('n-tel').value    = d.nTel;
-    $('n-logo-wawa').checked  = d.nLogoWawa  !== false;
-    $('n-logo-wplus').checked = d.nLogoWplus !== false;
-    $('n-logo-glory').checked = d.nLogoGlory !== false;
-    if (Array.isArray(d.legends) && d.legends.length) legends = d.legends;
-    if (Array.isArray(d.naesin)  && d.naesin.length)  naesin  = d.naesin;
-    if (Array.isArray(d.rules)   && d.rules.length)   rules   = d.rules;
-    if (d.evts)       evts       = d.evts;
-    if (Array.isArray(d.customHols)) customHols = d.customHols;
-    if (d.holInput) $('hol-input').value = d.holInput;
-    if (Array.isArray(d.nItems)  && d.nItems.length)  nItems  = d.nItems;
-    // 이달의 공지 항목 전체 복원 (동적 추가 포함)
-    if (d.sNoticeHTML) $('s-notice').innerHTML = d.sNoticeHTML;
-    // contenteditable 텍스트 복원 (결제안내 pay-txt 등)
-    if (d.ceData && typeof d.ceData === 'object') {
-      document.querySelectorAll('[data-ce-id]').forEach(el => {
-        const saved = d.ceData[el.dataset.ceId];
-        if (saved !== undefined) el.innerHTML = saved;
-      });
-    }
-  } catch(e) {}
-}
 </script>
-
-
 </body>
 </html>
